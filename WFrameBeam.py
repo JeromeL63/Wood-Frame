@@ -212,8 +212,9 @@ class BeamShadow():
         self.curview= Draft.get3DView()
         self.call= self.curview.addEventCallback("SoEvent",self.action)
         self.opoint=FreeCAD.Vector(0,0,0)
-        self.status="PAD_5"
-        QtGui.QMessageBox.information(None, "Information", "Use numpad to move beam correctly")
+        self.status="PAD_5"       
+        #QtGui.QMessageBox.information(None, "Information", "Use numpad to move beam correctly")
+
 
 
     def  createShadow(self,vect,structure=None):
@@ -284,11 +285,15 @@ class BeamShadow():
             w=self.beam.width
 
         if (arg["Type"] == "SoMouseButtonEvent") and (arg["Button"] == "BUTTON1") and  (arg["State"] == "UP"):
+
+            Console.PrintMessage("##BeamTracker## Mouse BUTTON1 pressed\r\n")
+
             self.finalize()
             self.finish()
 
 
-        if (arg["Type"] == "SoKeyboardEvent") and (arg["State"] == "UP") :
+        elif (arg["Type"] == "SoKeyboardEvent") and (arg["State"] == "UP") :
+
             if arg["Key"] == "ESCAPE":
 
                 ###TODO remove component CRASH
@@ -451,6 +456,8 @@ class BeamShadow():
        if self.call:
             try:
                 self.curview.removeEventCallback("SoEvent",self.call)
+                Console.PrintMessage("##BeamTracker## event callback removed \r\n")
+
             #except RuntimeError:
             except :
                 pass
