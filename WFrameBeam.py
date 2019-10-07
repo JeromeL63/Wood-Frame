@@ -213,9 +213,11 @@ class BeamShadow():
         self.call= self.curview.addEventCallback("SoEvent",self.action)
         self.opoint=FreeCAD.Vector(0,0,0)
         self.status="PAD_5"
+        QtGui.QMessageBox.information(None, "Information", "Use numpad to move beam correctly")
 
 
     def  createShadow(self,vect,structure=None):
+
         #Beam creation
         if structure:
             self.structure=structure
@@ -280,6 +282,11 @@ class BeamShadow():
         elif self.evalrot[2] in self.beam.orientation:
             h=self.beam.height
             w=self.beam.width
+
+        if (arg["Type"] == "SoMouseButtonEvent") and (arg["Button"] == "BUTTON1") and  (arg["State"] == "UP"):
+            self.finalize()
+            self.finish()
+
 
         if (arg["Type"] == "SoKeyboardEvent") and (arg["State"] == "UP") :
             if arg["Key"] == "ESCAPE":
