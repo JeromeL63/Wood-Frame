@@ -1,0 +1,36 @@
+; C18
+; Jerome LAVERROUX
+; information about the content of such cards can be found on the wiki:
+; https://www.freecadweb.org/wiki/Material
+; file created by FreeCAD0.19.16474 (Git)
+
+[General]
+Name = C18
+Father = Wood
+Description = C18 eurocode 5
+
+[Mechanical]
+Density = 380 kg/m^3
+
+[Architectural]
+Color = (166, 128, 90)
+
+[Rendering]
+DiffuseColor = (0.0, 0.0, 0.0)
+Transparency = 0
+
+[Vector rendering]
+ViewColor = (0.0, 0.0, 0.0)
+
+[User defined]
+fm,0,k = 18
+ft,0,k = 10
+ft,90,k = 0.4
+fc,0,k = 18
+fc,90,k = 2.2
+fv,k = 3.4
+E0mean = 9.0
+Em,0,k = 6.0
+Em,90,mean = 0.3
+Gmean = 0.56
+rho,k = 320
