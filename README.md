@@ -3,4 +3,4 @@ collection of tools to use FreeCAD in wood frame. It's a fork of Timber Workbenc
 
 
 # License
-GNU General Public License V2.0
+GNU General Public License V3.0
