@@ -39,28 +39,10 @@ else:
 import os
 __dir__ = os.path.dirname(__file__)
 
-__title__="FreeCAD WoodWork Beam"
+__title__="FreeCAD WoodFrame Beam"
 __author__ = "Jerome Laverroux"
 __url__ = "http://www.freecadweb.org"
 
-
-
-
-'''
-disabling numpad shortcuts
-to use for positionning and quick launch
-'''
-preset = [
-    ("Std_ViewAxo"   , "CTRL+0"),
-    ("Std_ViewFront" , "CTRL+1"),
-    ("Std_ViewTop"   , "CTRL+2"),
-    ("Std_ViewRight" , "CTRL+3"),
-    ("Std_ViewRear"  , "CTRL+4"),
-    ("Std_ViewBottom", "CTRL+5"),
-    ("Std_ViewLeft"  , "CTRL+6"),
-]
-for (cmd, shortcut) in preset:
-    FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Shortcut").SetString(cmd, shortcut)
 
 
 
@@ -200,6 +182,10 @@ class Positionning:
 
 class BeamShadow():
     def __init__(self,beam):
+
+        #used to prevent first click
+        self.clickCount=0
+
         self.beam=beam
         self.points= []
         # point used to rotate beam correctly
@@ -218,6 +204,7 @@ class BeamShadow():
 
 
     def  createShadow(self,vect,structure=None):
+        self.clickCount=0
 
         #Beam creation
         if structure:
@@ -285,11 +272,13 @@ class BeamShadow():
             w=self.beam.width
 
         if (arg["Type"] == "SoMouseButtonEvent") and (arg["Button"] == "BUTTON1") and  (arg["State"] == "UP"):
-
+            self.clickCount+=1
             Console.PrintMessage("##BeamTracker## Mouse BUTTON1 pressed\r\n")
-
-            self.finalize()
-            self.finish()
+            if self.clickCount == 2:
+                self.finalize()
+                self.finish()
+            elif self.clickCount >2:
+                self.clickCount=1
 
 
         elif (arg["Type"] == "SoKeyboardEvent") and (arg["State"] == "UP") :

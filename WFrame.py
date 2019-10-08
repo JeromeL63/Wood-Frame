@@ -32,7 +32,7 @@ __author__ = "Jerome Laverroux"
 __url__ = "http://www.freecadweb.org"
 
 import FreeCAD
-import WFrameBeam
+import WFrameBeam,WFrameList
 if FreeCAD.GuiUp:
 	import FreeCADGui
 	FreeCADGui.updateLocale()
