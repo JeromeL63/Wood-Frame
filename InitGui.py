@@ -181,6 +181,21 @@ static char *ferme[] = {
 
     def Initialize(self):
         """This function is executed when FreeCAD starts"""
+        '''
+        disabling numpad shortcuts
+        to use for positionning and quick launch
+        '''
+        preset = [
+            ("Std_ViewAxo"   , "CTRL+0"),
+            ("Std_ViewFront" , "CTRL+1"),
+            ("Std_ViewTop"   , "CTRL+2"),
+            ("Std_ViewRight" , "CTRL+3"),
+            ("Std_ViewRear"  , "CTRL+4"),
+            ("Std_ViewBottom", "CTRL+5"),
+            ("Std_ViewLeft"  , "CTRL+6"),
+        ]
+        for (cmd, shortcut) in preset:
+            FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Shortcut").SetString(cmd, shortcut)
         def QT_TRANSLATE_NOOP(scope, text):
             return text
 
@@ -197,7 +212,7 @@ static char *ferme[] = {
  
         
         
-        self.wframe = ["WFrameBeam","Arch_CutPlane","Arch_SplitMesh","Arch_MaterialTools"] # A list of command names created in the line above
+        self.wframe = ["WFrameBeam","Arch_CutPlane","Arch_SplitMesh","Arch_MaterialTools","WFrameList"] # A list of command names created in the line above
         self.appendToolbar("Wood Frame",self.wframe) # creates a new toolbar with your commands
         self.appendMenu("Wood Frame",self.wframe) # creates a new menu
        # self.appendMenu(["An existing Menu","My submenu"],self.list) # appends a submenu to an existing menu
