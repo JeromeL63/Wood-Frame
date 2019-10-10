@@ -131,7 +131,7 @@ class BeamVector():
 #snapper starting
         self.tracker = DraftTrackers.lineTracker()
         self.tracker.on()
-        FreeCADGui.Snapper.getPoint(callback=self.getPoint1)
+        FreeCADGui.Snapper.getPoint(callback=self.getPoint1,title="Select the origin of the beam")
     def getPoint1(self,point,obj=None):
 #retreive snapped point
         if point == None:
@@ -139,7 +139,7 @@ class BeamVector():
             return        
         self.points.append(point)        
 #ask for a second point        
-        FreeCADGui.Snapper.getPoint(last=point,callback=self.getPoint2,movecallback=self.update)
+        FreeCADGui.Snapper.getPoint(last=point,callback=self.getPoint2,movecallback=self.update,title="Select the end of the beam")
     def getPoint2(self,point,obj=None):
         self.points.append(point)
         b=BeamShadow(self.points,self.beam)
@@ -167,11 +167,11 @@ class BeamOffset():
         self.tracker = DraftTrackers.lineTracker()
         self.tracker.on()
 #ask for a point
-        FreeCADGui.Snapper.getPoint(last=self.originPoint,callback=self.getPoint,movecallback=self.update,title="Chagne the insertion Point")
+        FreeCADGui.Snapper.getPoint(last=self.originPoint,callback=self.getPoint,movecallback=self.update,title="Change the insertion Point(or Esc)")
     def getPoint(self,point,obj=None):
         if point == None:
             self.tracker.finalize()
-            finalize((0,0,0),structure=self.structure)
+            self.finalize(FreeCAD.Vector(0,0,0),structure=self.structure)
             return
         self.points.append(point)
         self.points.append(self.originPoint)
