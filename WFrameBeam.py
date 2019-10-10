@@ -328,7 +328,6 @@ class BeamShadow():
 
         # then recompute
         FreeCAD.ActiveDocument.recompute()
-        Console.PrintMessage("##BeamTracker## Hit ENTER to terminate\r\n")
 
 
     def askInsPoint(self):
