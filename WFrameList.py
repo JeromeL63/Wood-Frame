@@ -47,7 +47,7 @@ class WFrameList():
     """WFrameList"""
 
     def GetResources(self):
-        return {'Pixmap'  :  __dir__ + '/icons/WFrame_Listing.svg',
+        return {'Pixmap'  :  __dir__ + '/Resources/icons/WFrame_Listing.svg',
                 'Accel' : "W,L",
                 'MenuText': "WFrameList",
                 'ToolTip' : "Create wood beams listing"}

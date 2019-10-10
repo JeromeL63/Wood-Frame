@@ -23,7 +23,7 @@
 
 
 import FreeCAD, Arch, Draft,ArchComponent, DraftVecUtils,ArchCommands, ArchStructure,math,FreeCADGui
-from FreeCAD import Base, Console, Vector
+from FreeCAD import Base, Console, Vector,Rotation
 from math import *
 import DraftTrackers
 
@@ -45,16 +45,13 @@ __url__ = "http://www.freecadweb.org"
 
 
 
-
 from PySide import QtGui
-
-
 
 class WFrameBeam():
     """WFrameBeam"""
 
     def GetResources(self):
-        return {'Pixmap'  :  __dir__ + '/icons/WFrameBeam.svg',
+        return {'Pixmap'  :  __dir__ + '/Resources/icons/WFrameBeam.svg',
                 'Accel' : "W,B",
                 'MenuText': "WFrameBeam",
                 'ToolTip' : "Create an advanced beam with better positionning method"}
@@ -119,7 +116,7 @@ class BeamDef:
         return self.length
 
 
-class TwoPoints():
+class BeamVector():
     '''this class return 2 points selected by user'''
     def __init__(self,beam):
         self.beam=beam
@@ -132,7 +129,7 @@ class TwoPoints():
         self.points = []
 
 #snapper starting
-        self.tracker = DraftTrackers.lineTracker()   
+        self.tracker = DraftTrackers.lineTracker()
         self.tracker.on()
         FreeCADGui.Snapper.getPoint(callback=self.getPoint1)
     def getPoint1(self,point,obj=None):
@@ -140,24 +137,58 @@ class TwoPoints():
         if point == None:
             self.tracker.finalize()
             return        
-        self.points.append(point)
-        Console.PrintMessage("Origin point:"+str(self.points[0])+"\r\n")
+        self.points.append(point)        
 #ask for a second point        
         FreeCADGui.Snapper.getPoint(last=point,callback=self.getPoint2,movecallback=self.update)
-
     def getPoint2(self,point,obj=None):
         self.points.append(point)
-        Console.PrintMessage("Point 2 :"+str(self.points[1])+"\r\n")
-        self.launchBeam()
+        b=BeamShadow(self.points,self.beam)
+        b.createShadow()
 
-    
     def update(self,point,info):
         dep = point
 
-    def launchBeam(self):
-        b =BeamShadow(self.beam)
-        b.setPoints(points=self.points)
-        b.createShadow(FreeCAD.Vector(0,0,0))
+
+class BeamOffset():
+    '''this class return 2 points selected by user'''
+    def __init__(self,beam,originPoint,structure=None):
+        self.beam=beam
+        self.originPoint=originPoint
+        self.structure=structure
+        self.doc=FreeCAD.ActiveDocument
+        if self.doc == None:
+            FreeCAD.newDocument("Sans_Nom")
+
+        self.view = FreeCADGui.ActiveDocument.ActiveView
+        self.units=FreeCAD.Units.Quantity(1.0,FreeCAD.Units.Length)
+        self.points = []
+
+#snapper starting
+        self.tracker = DraftTrackers.lineTracker()
+        self.tracker.on()
+#ask for a point
+        FreeCADGui.Snapper.getPoint(last=self.originPoint,callback=self.getPoint,movecallback=self.update,title="Chagne the insertion Point")
+    def getPoint(self,point,obj=None):
+        if point == None:
+            self.tracker.finalize()
+            finalize((0,0,0),structure=self.structure)
+            return
+        self.points.append(point)
+        self.points.append(self.originPoint)
+        b=BeamShadow(self.points,self.beam)
+        vector=FreeCAD.Vector(self.points[1][0]-self.points[0][0],self.points[1][1]-self.points[0][1],self.points[1][2]-self.points[0][2])
+        self.finalize(vector,self.structure)
+
+    def update(self,point,info):
+        dep = point
+
+    def finalize(self,finalPoint,structure=None):
+        structure.ViewObject.Transparency=0
+        structure.ViewObject.DrawStyle="Solid"
+        Draft.move(structure,finalPoint)
+        FreeCAD.ActiveDocument.recompute()
+
+
 
 
 class Positionning:
@@ -177,17 +208,18 @@ class Positionning:
                     if ok: 
                         beam.height=float(beam.height)
                         if beam.orientation == beamor[2] :
-                            beam.length = float(QtGui.QInputDialog.getText(None,"Section","longueur(mm):",QtGui.QLineEdit.Normal,"1000")[0])
-                        TwoPoints(beam)
+                            beam.length = float(QtGui.QInputDialog.getText(None,"Section","longueur(mm):",QtGui.QLineEdit.Normal,"1000")[0])                        
+                        BeamVector(beam)
 
 class BeamShadow():
-    def __init__(self,beam):
-
+    def __init__(self,points,beam):
+        Console.PrintMessage("##BeamTracker## Beam Shadow \r\n")
         #used to prevent first click
-        self.clickCount=0
-
         self.beam=beam
-        self.points= []
+        self.clickCount=0
+        self.boundingBoxExist= False
+        #self.beam=beam        
+        self.points = points
         # point used to rotate beam correctly
         self.tempPoint=Base.Vector(0,0,0)
         self.angle=0
@@ -196,48 +228,97 @@ class BeamShadow():
 
         # try to retreive keyboard numpad to place beam with points
         self.curview= Draft.get3DView()
-        self.call= self.curview.addEventCallback("SoEvent",self.action)
+        #self.call= self.curview.addEventCallback("SoEvent",self.action)
         self.opoint=FreeCAD.Vector(0,0,0)
-        self.status="PAD_5"       
-        #QtGui.QMessageBox.information(None, "Information", "Use numpad to move beam correctly")
+        #self.status="PAD_5"
 
 
 
-    def  createShadow(self,vect,structure=None):
+    def  createShadow(self,structure=None):
         self.clickCount=0
 
+        if not self.evalrot[2] in self.beam.orientation:
+            self.beam.length= DraftVecUtils.dist(self.points[0],self.points[1])
+
+
         #Beam creation
-        if structure:
+        if self.structure:
             self.structure=structure
         else :
             #beam cut view
             if self.evalrot[2] in self.beam.orientation:
-
                 pass
-
             self.structure=Arch.makeStructure(None, self.beam.length,self.beam.width,self.beam.height)
 
-        # set beam rotations up cut or front
-        
-        self.vect = vect
-        #beam face view
-        if self.evalrot[0] in self.beam.orientation:
-            self.structure.Placement=FreeCAD.Placement(self.vect, FreeCAD.Rotation(0,0,-90), FreeCAD.Vector(0,0,0))
+        self.vecAngle=FreeCAD.Vector(0,0,0)
+        self.vecAngle[0]=self.points[1][0]-self.points[0][0]
+        self.vecAngle[1]=self.points[1][1]-self.points[0][1]
+        self.vecAngle[2]=self.points[1][2]-self.points[0][2]
 
+
+        #get rotations between zplan and current plan   YESSSS
+        self.wplan=FreeCAD.DraftWorkingPlane
+        self.rotPlan=self.wplan.getRotation().Rotation
+
+        #Initialize placement
+        # set the origin point
+        self.initialPlacement=FreeCAD.Base.Placement(self.points[0], FreeCAD.Rotation(0,0,0), FreeCAD.Vector(0,0,0))
+        # Rotate beam on workingplane
+
+        self.initialPlacement=self.initialPlacement * FreeCAD.Base.Placement(FreeCAD.Vector(0,0,0), self.rotPlan)
+        self.structure.Placement=self.initialPlacement
+
+        #beam defaultview is from face
+        self.structure.Placement=self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0,0,0), FreeCAD.Rotation(0,0,-90))
         #beam up view
-        elif self.evalrot[1] in self.beam.orientation:
-            self.structure.Placement=FreeCAD.Placement(self.vect, FreeCAD.Rotation(0,0,0), FreeCAD.Vector(0,0,0))
-
+        if self.evalrot[1] in self.beam.orientation:
+            self.structure.Placement=self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0,0,0), FreeCAD.Rotation(0,0,90))
         #beam cut view
         elif self.evalrot[2] in self.beam.orientation:
-            self.structure.Placement=FreeCAD.Placement(self.vect, FreeCAD.Rotation(0,90,-90), FreeCAD.Vector(0,0,0))
+            self.structure.Placement=self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0,0,0), FreeCAD.Rotation(90,0,0))
 
+
+
+        ''' now beam is oriented
+        we have to apply offset gived by Snapper (numpad is too hard to make it working)
+        '''
+        BeamOffset(self.beam,self.points[0],self.structure)
         FreeCAD.ActiveDocument.recompute()
-        #move beam to first picked point
-        Draft.move(self.structure,self.points[0])
+
+
+
+        #set Angle
+
+        #get normal of current workplane
+
+        self.normal=FreeCAD.DraftWorkingPlane.getNormal()
+
+        # get angle in radians between two point with the given normal plan
+        self.localPoints=[]
+        self.localPoints.append(FreeCAD.DraftWorkingPlane.getLocalCoords(self.points[0]))
+        self.localPoints.append(FreeCAD.DraftWorkingPlane.getLocalCoords(self.points[1]))
+        self.vecAngle=FreeCAD.Vector(0,0,0)
+        #relative vector angle
+        self.vecAngle[0]=self.localPoints[1][0]-self.localPoints[0][0]
+        self.vecAngle[1]=self.localPoints[1][1]-self.localPoints[0][1]
+        self.vecAngle[2]=self.localPoints[1][2]-self.localPoints[0][2]
+        #along workingplane normal
+        Console.PrintMessage("##BeamTracker## Workplan normal "+str(self.normal)+"\r\n")
+
+
+        self.angle=DraftVecUtils.angle(self.vecAngle,normal=self.normal)
+        Console.PrintMessage("##BeamTracker## Angle before "+str(self.angle)+"°\r\n")
+
+        ####WARNING
+        #angles 90 and -90 are inverted on Draft on XY plan
+        if self.normal == FreeCAD.Vector(0.0,0.0,1.0):
+            self.normal=FreeCAD.Vector(0,0,-1)
+
+        self.angle=degrees(self.angle)
+
+        Draft.rotate(self.structure,self.angle,center=self.points[0],axis=self.normal,copy=False)
         FreeCAD.ActiveDocument.recompute()
-        
-        Draft.rotate(self.structure,self.angle,center=self.points[0],copy=False)
+
 
         #set Attributes
         self.structure.ViewObject.Transparency=50
@@ -249,27 +330,26 @@ class BeamShadow():
         FreeCAD.ActiveDocument.recompute()
         Console.PrintMessage("##BeamTracker## Hit ENTER to terminate\r\n")
 
-    def finalize(self):
-        self.structure.ViewObject.Transparency=0
-        self.structure.ViewObject.DrawStyle="Solid"
-        FreeCAD.ActiveDocument.recompute()
+
+    def askInsPoint(self):
+        Console.PrintMessage("##BeamTracker## Ask ins point\r\n")
+        self.tracker=DraftTrackers.lineTracker()
+        FreeCADGui.Snapper.getPoint(callback=self.getSartPoint)
+
+
+
+####ACTION
 
     def action(self, arg):
         #message for tests
         #Console.PrintMessage("##BeamTracker##:"+str(arg)+"\r\n")
-
-        #beam face view
-        if self.evalrot[0] in self.beam.orientation:
-            h=self.beam.height
-            w=self.beam.width
-        #beam up view
-        elif self.evalrot[1] in self.beam.orientation:
+        h=self.beam.height
+        w=self.beam.width
+        if self.evalrot[1] in self.beam.orientation:
             w=self.beam.height
             h=self.beam.width
-        #beam up view
-        elif self.evalrot[2] in self.beam.orientation:
-            h=self.beam.height
-            w=self.beam.width
+
+
 
         if (arg["Type"] == "SoMouseButtonEvent") and (arg["Button"] == "BUTTON1") and  (arg["State"] == "UP"):
             self.clickCount+=1
@@ -284,103 +364,102 @@ class BeamShadow():
         elif (arg["Type"] == "SoKeyboardEvent") and (arg["State"] == "UP") :
 
             if arg["Key"] == "ESCAPE":
-
-                ###TODO remove component CRASH
-                '''
-                rm = FreeCAD.ActiveDocument
-                rm.openTransaction("Remove object")
-                rm.removeObject(self.structure.Name)
-                rm.commitTransaction()
-                rm.recompute()
-                '''
                 self.finish()
             # numpad assignement for beam positionning
             if arg["Key"] == "PAD_1":
-                self.opoint[1]=h/2.0
+                self.opoint=self.coords[3]
                 if self.evalrot[2] in self.beam.orientation:
-                    self.opoint[0]=w/2.0
+                    self.opoint=self.coords[4]
+                    self.structure.ViewObject.DrawStyle="Solid"
                 else :
                     self.opoint[2]=w/2.0
-                self.structure.ViewObject.DrawStyle="Solid"
+                    self.structure.ViewObject.DrawStyle="Solid"
+
                 self.createShadow(self.opoint,self.structure)
 
             if arg["Key"] == "PAD_2":
-                self.opoint[1]=h/2.0
+                self.opoint=self.midpoint(self.coords[2],self.coords[3])
                 if self.evalrot[2] in self.beam.orientation:
                     self.opoint[0]=0.0
+                    self.structure.ViewObject.DrawStyle="Solid"
                 else:
                     self.opoint[2]=0.0
-                self.structure.ViewObject.DrawStyle="Dashdot"
+                    self.structure.ViewObject.DrawStyle="Dashdot"
+
                 self.createShadow(self.opoint,self.structure)
 
             if arg["Key"] == "PAD_3":
-                self.opoint[1]=h/2.0
+                self.opoint=self.coords[2]
                 if self.evalrot[2] in self.beam.orientation:
                     self.opoint[0]=-w/2.0
+                    self.structure.ViewObject.DrawStyle="Solid"
                 else:
                     self.opoint[2]=-w/2.0
+                    self.structure.ViewObject.DrawStyle="Dashed"
 
-                self.structure.ViewObject.DrawStyle="Dashed"
                 self.createShadow(self.opoint,self.structure)
 
             if arg["Key"] == "PAD_4":
-                self.opoint[1]=0.0
+                self.opoint=self.midpoint(self.coords[1],self.coords[3])
                 if self.evalrot[2] in self.beam.orientation:
                     self.opoint[0]=w/2.0
+                    self.structure.ViewObject.DrawStyle="Solid"
                 else:
                     self.opoint[2]=w/2.0
+                    self.structure.ViewObject.DrawStyle="Solid"
 
-                self.structure.ViewObject.DrawStyle="Solid"
                 self.createShadow(self.opoint,self.structure)
 
             if arg["Key"] == "PAD_5":
-                self.opoint[1]=0.0
+                self.opoint=self.points[0]
                 if self.evalrot[2] in self.beam.orientation:
-                    self.opoint[0]=0.0
-                else:
-                    self.opoint[2]=0.0
+                    self.structure.ViewObject.DrawStyle="Solid"                    
+                else:                    
+                    self.structure.ViewObject.DrawStyle="Dashdot"
 
-                self.structure.ViewObject.DrawStyle="Dashdot"
                 self.createShadow(self.opoint,self.structure)
 
             if arg["Key"] == "PAD_6":
-                self.opoint[1]=0.0
+                self.opoint=self.midpoint(self.coords[0],self.coords[2])
                 if self.evalrot[2] in self.beam.orientation:
+                    self.structure.ViewObject.DrawStyle="Solid"
                     self.opoint[0]=-w/2.0
                 else:
                     self.opoint[2]=-w/2.0
+                    self.structure.ViewObject.DrawStyle="Dashed"
 
-                self.structure.ViewObject.DrawStyle="Dashed"
                 self.createShadow(self.opoint,self.structure)
 
             if arg["Key"] == "PAD_7":
-                self.opoint[1]=-h/2.0
+                self.opoint=self.coords[1]
                 if self.evalrot[2] in self.beam.orientation:
+                    self.structure.ViewObject.DrawStyle="Solid"
                     self.opoint[0]=w/2.0
                 else:
                     self.opoint[2]=w/2.0
+                    self.structure.ViewObject.DrawStyle="Solid"
 
-                self.structure.ViewObject.DrawStyle="Solid"
                 self.createShadow(self.opoint,self.structure)
 
             if arg["Key"] == "PAD_8":
-                self.opoint[1]=-h/2.0
+                self.opoint=self.midpoint(self.coords[0],self.coords[1])
                 if self.evalrot[2] in self.beam.orientation:
+                    self.structure.ViewObject.DrawStyle="Solid"
                     self.opoint[0]=0.0
                 else:
                     self.opoint[2]=0.0
-
-                self.structure.ViewObject.DrawStyle="Dashdot"
+                    self.structure.ViewObject.DrawStyle="Dashdot"
                 self.createShadow(self.opoint,self.structure)
 
             if arg["Key"] == "PAD_9":
-                self.opoint[1]=-h/2.0
+                self.opoint=self.coords[0]
                 if self.evalrot[2] in self.beam.orientation:
                     self.opoint[0]=-w/2.0
+                    self.structure.ViewObject.DrawStyle="Solid"
                 else:
                     self.opoint[2]=-w/2.0
+                    self.structure.ViewObject.DrawStyle="Dashed"
 
-                self.structure.ViewObject.DrawStyle="Dashed"
                 self.createShadow(self.opoint,self.structure)
 
             if arg["Key"] == "PAD_ENTER" or arg["Key"] == "RETURN":
@@ -388,58 +467,6 @@ class BeamShadow():
                 self.finish()
 
 
-
-    def setPoints(self,points):
-        self.points=points
-        Console.PrintMessage("##BeamTracker## points:"+str(self.points)+"\r\n")
-
-        #beam cut view, length is alreday set previously
-        eval =self.beam.getOrientationTypes()
-        if not eval[2] in self.beam.orientation:
-            self.beam.length= DraftVecUtils.dist(self.points[0],self.points[1])
-
-        Console.PrintMessage("##BeamTracker## Distance between 2 vectors:"+str(self.beam.length)+"\r\n")
-        #set Angle
-
-        #0°
-        if (self.points[0][0] > self.points[1][0]) and (self.points[0][1] == self.points[1][1]):
-            Console.PrintMessage("##BeamTracker## 90°\r\n")
-            self.angle=0
-
-        if (self.points[0][0] < self.points[1][0]) and (self.points[0][1] < self.points[1][1]):
-            Console.PrintMessage("##BeamTracker## 0 to 89°\r\n")
-            self.angle=atan((self.points[1][1]-self.points[0][1])/(self.points[1][0]-self.points[0][0]))
-            self.angle=degrees(self.angle)
-        #90
-        elif (self.points[0][0] == self.points[1][0]) and (self.points[0][1] < self.points[1][1]):
-            Console.PrintMessage("##BeamTracker## 90°\r\n")
-            self.angle=90
-        #91 to 179
-        elif (self.points[0][0] > self.points[1][0]) and (self.points[0][1] < self.points[1][1]):
-            Console.PrintMessage("##BeamTracker## 91 to 179\r\n")
-            self.angle=atan((self.points[1][1]-self.points[0][1])/(self.points[1][0]-self.points[0][0]))
-            self.angle=degrees(self.angle+(math.pi))
-        #180
-        elif (self.points[0][0] > self.points[1][0]) and (self.points[0][1] == self.points[1][1]):
-            Console.PrintMessage("##BeamTracker## 180\r\n")
-            self.angle=180
-        #181 269
-        elif (self.points[0][0] > self.points[1][0]) and (self.points[0][1] > self.points[1][1]):
-            self.angle=atan((self.points[1][1]-self.points[0][1])/(self.points[1][0]-self.points[0][0]))
-            Console.PrintMessage("##BeamTracker## 181 to 269\r\n")
-            self.angle=degrees((math.pi)+ self.angle)
-        #270
-        elif (self.points[0][0] == self.points[1][0]) and (self.points[0][1] > self.points[1][1]):
-            Console.PrintMessage("##BeamTracker## 270\r\n")
-            self.angle=270
-        #271 to 359
-        else :
-            self.angle=atan((self.points[1][1]-self.points[0][1])/(self.points[1][0]-self.points[0][0]))
-            Console.PrintMessage("##BeamTracker## 271 to 360\r\n")
-            self.angle=degrees(2*(math.pi)+ self.angle)
-
-
-        Console.PrintMessage("##BeamTracker## Angle DIY"+str(self.angle)+"°\r\n")
 
     def finish(self,closed=False):
        if self.call:
