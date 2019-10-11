@@ -25,6 +25,7 @@
 import FreeCAD, Arch, Draft,ArchComponent, DraftVecUtils,ArchCommands, ArchStructure,math,FreeCADGui
 from FreeCAD import Base, Console, Vector,Rotation
 from math import *
+
 import DraftTrackers
 import WFrameAttributes
 
@@ -81,7 +82,7 @@ class BeamDef:
     '''
     def __init__(self):
         self.name="Poutre"
-        self.preset="Purlin"
+        self.type=0
         self.width=0
         self.height=0
         self.length=0
@@ -126,7 +127,7 @@ class BeamDef:
 
 
 class BeamVector():
-    '''this class return 2 points selected by user'''
+    """this class return 2 points selected by user"""
     def __init__(self,beam):
         self.beam=beam
         self.doc=FreeCAD.ActiveDocument
@@ -210,7 +211,8 @@ class Positionning:
         if ok :
             beam.name,ok= QtGui.QInputDialog.getText(None,"Attributes","name:",QtGui.QLineEdit.Normal,beam.name)
             if ok:
-                beam.preset,ok= QtGui.QInputDialog.getText(None,"Attributes","preset:",QtGui.QLineEdit.Normal,beam.preset)
+                types=WFrameAttributes.getTypes()
+                beam.preset,ok= QtGui.QInputDialog.getItem(None,"Attributes","type:",types,beam.type,False)
                 if ok:
                     beam.width,ok= QtGui.QInputDialog.getText(None,"Section","Largeur(mm):",QtGui.QLineEdit.Normal,"45")
                     if ok:
@@ -290,7 +292,8 @@ class BeamShadow():
 
 
 
-        ''' now beam is oriented
+        ''' 
+        now beam is oriented
         we have to apply offset gived by Snapper (numpad is too hard to make it working)
         '''
         BeamOffset(self.beam,self.points[0],self.structure)
@@ -332,10 +335,13 @@ class BeamShadow():
 
 
         #set Attributes
+        WFrameAttributes.insertAttr(self.structure)
         self.structure.ViewObject.Transparency=50
         self.structure.IfcType="Beam"
         self.structure.Tag="Wood-Frame"
         self.structure.Label=self.beam.name
+        #specific attributes for WFrame
+        self.structure.Name=self.beam.name
 
         # then recompute
         FreeCAD.ActiveDocument.recompute()

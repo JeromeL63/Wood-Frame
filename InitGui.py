@@ -193,6 +193,8 @@ static char *ferme[] = {
             ("Std_ViewRear"  , "CTRL+4"),
             ("Std_ViewBottom", "CTRL+5"),
             ("Std_ViewLeft"  , "CTRL+6"),
+            ("Std_BoxSelection","b"),
+
         ]
         for (cmd, shortcut) in preset:
             FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Shortcut").SetString(cmd, shortcut)
