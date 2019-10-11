@@ -26,6 +26,7 @@ import FreeCAD, Arch, Draft,ArchComponent, DraftVecUtils,ArchCommands, ArchStruc
 from FreeCAD import Base, Console, Vector,Rotation
 from math import *
 import DraftTrackers
+import WFrameAttributes
 
 
 if FreeCAD.GuiUp:
@@ -80,17 +81,25 @@ class BeamDef:
     '''
     def __init__(self):
         self.name="Poutre"
+        self.preset="Purlin"
         self.width=0
         self.height=0
         self.length=0
         self.orientation=""
         self.viewTypes=["face","up","cut"]
+        #the default view type
         self.view=self.viewTypes[0]
 
+#getters and setters
     def name(self,n):
         if n:
             self.name:n
-            return self.name
+        return self.name
+
+    def preset(self,p):
+        if p:
+            self.preset:p
+        return self.preset
 
     def height(self,h):
         if h:
@@ -201,15 +210,17 @@ class Positionning:
         if ok :
             beam.name,ok= QtGui.QInputDialog.getText(None,"Attributes","name:",QtGui.QLineEdit.Normal,beam.name)
             if ok:
-                beam.width,ok= QtGui.QInputDialog.getText(None,"Section","Largeur(mm):",QtGui.QLineEdit.Normal,"45")
+                beam.preset,ok= QtGui.QInputDialog.getText(None,"Attributes","preset:",QtGui.QLineEdit.Normal,beam.preset)
                 if ok:
-                    beam.width=float(beam.width)
-                    beam.height,ok= QtGui.QInputDialog.getText(None,"Section","hauteur(mm):",QtGui.QLineEdit.Normal,"145")
-                    if ok: 
-                        beam.height=float(beam.height)
-                        if beam.orientation == beamor[2] :
-                            beam.length = float(QtGui.QInputDialog.getText(None,"Section","longueur(mm):",QtGui.QLineEdit.Normal,"1000")[0])                        
-                        BeamVector(beam)
+                    beam.width,ok= QtGui.QInputDialog.getText(None,"Section","Largeur(mm):",QtGui.QLineEdit.Normal,"45")
+                    if ok:
+                        beam.width=float(beam.width)
+                        beam.height,ok= QtGui.QInputDialog.getText(None,"Section","hauteur(mm):",QtGui.QLineEdit.Normal,"145")
+                        if ok:
+                            beam.height=float(beam.height)
+                            if beam.orientation == beamor[2] :
+                                beam.length = float(QtGui.QInputDialog.getText(None,"Section","longueur(mm):",QtGui.QLineEdit.Normal,"1000")[0])
+                            BeamVector(beam)
 
 class BeamShadow():
     def __init__(self,points,beam):
