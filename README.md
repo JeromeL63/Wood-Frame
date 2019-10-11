@@ -2,7 +2,7 @@
 collection of tools to use FreeCAD in wood frame. It's a fork of Timber Workbench. Use draft and Arch workbenchs.
 
 # Note
-Numpad shortcut are modified to:<br>
+Numpad shortcuts are modified to:<br>
 CTRL + 1 \n<br>
 CTRL + 2 \n<br>
 ....<br>
@@ -12,7 +12,12 @@ so restart FreeCAD after installation
 <h2>Beam poisitionning from origin beam point</h2><br>
 
   
-  
+
+
+<h3>Numpad positionning is disabled at the moment</h3>
+snapper is used instead
+
+
 Column 1 | Column 2 | Column 3 
 --------------------------|--------------------------|---------------------------
 7:above plan left corner | 8:axis  plan left corner | 9:behind plan left corner
