@@ -23,11 +23,15 @@
 
 
 import FreeCAD
+import Arch,ArchComponent
 from math import *
+
 from PySide import QtCore,QtGui
 
 if FreeCAD.GuiUp:
     import FreeCADGui
+
+
     from FreeCAD import Console
     from DraftTools import translate
 else:
@@ -41,6 +45,7 @@ __author__ = "Jerome Laverroux"
 __url__ = "http://www.freecadweb.org"
 
 attrUI=__dir__+"/Resources/AttrEdit.ui"
+multiNames="***"
 
 class WFrameAttributes():
     """WFrameAttributes"""
@@ -83,7 +88,7 @@ except AttributeError:
         return QtGui.QApplication.translate(context, text, disambig)
 
 
-def getAttrList():
+def getAttrlist():
     '''
     Get the attributes/properties list available
     Name: the attribute name is used to have some presets like material=C18, machining type = Purlin etc..
@@ -94,11 +99,11 @@ def getAttrList():
     Prod. number : the production number it could not be editable, and a tool should be written to find same parts and give it the same number
     Inv. number : same as Prod number, but it's the invoice number
     '''
-    lst=["Name","Type","Material","Group","Sub-Group","Prod. Number","Inv. Number","Machining Type","User1","User2","User3","User4"]
+    lst=["Name","Type","Material","Group","Sub_Group","Prod_Number","Inv_Number","Machining_Type","User1","User2","User3","User4"]
     return lst
 
 def getTypes():
-    lst=["Beam","Pannel","Axe","Wall"]
+    lst=["Purlin","Pile","Truss","Pannel","Axe","Wall"]
     return lst
 
 def getMaterials():
@@ -109,28 +114,64 @@ def getMachining():
     lst=[]
     return lst
 
-def insertAttr(obj=None):
+def insertAttr(obj :ArchComponent.Component):
+    for i in getAttrlist():
+        #ofr tests properties aren't hidden's
+        #obj.addProperty("App::PropertyString",i,"WFrame","",4)
+        obj.addProperty("App::PropertyString", i, "WFrame", "", 0)
+
+
     "Insert all attributes/properties in the object"
-    pass
+
+
 
 def filterByAttr(objList=None,filter=""):
     "filter all objects provided, with the filter"
     pass
 
 class Ui_AttrEdit:
-     def __init__(self,obj=None):
-        self.obj=obj
+     def __init__(self):
+        self.objList=FreeCADGui.Selection.getSelection()
 
         self.form= FreeCADGui.PySideUic.loadUi(attrUI)
 
         self.form.cb_Type.addItems(getTypes())
         self.form.cb_Material.addItems(getMaterials())
         self.form.cb_Machining.addItems(getMachining())
+        #now retreive properties of selected objects
+        Console.PrintMessage("##WFrame Attr## obj name" + str(self.objList) + " \r\n")
+        for obj in self.objList:
+            list={}
+            for i in getAttrlist():
+                ###Where is switch in python ??? :'(
+                ### please re writte this function in a descent python code
+                list[i] = obj.getPropertyByName(i)
+
+                if i == getAttrlist()[0]:
+                    #if text equal this property or empty
+                    s=self.form.led_Name.text()
+                    Console.PrintMessage("##WFrame Attr## " + str(s) + " \r\n")
+                    if  (s == obj.getPropertyByName(i) ) or not(s) :
+                        self.form.led_Name.setText(obj.getPropertyByName(i))
+                    else:
+                        self.form.led_Name.setText(multiNames)
+                list[i] = obj.getPropertyByName(i)
+            Console.PrintMessage("##WFrame Attr## obj name list "+str(list)+" \r\n")
+        #if some properties are different show ***
 
 
 
      def accept(self):
         Console.PrintMessage("##WFrame Attr## Accepted \r\n")
+        for obj in self.objList:
+
+            for i in getAttrlist():
+                ###Note: I think there's an easyest way to do that in python like obj.list={}
+                #if property string equal *** do nothing
+                if i == getAttrlist()[0] and not self.form.led_Name.text()==multiNames:
+                    obj.Name=self.form.led_Name.text()
+
+
         FreeCADGui.Control.closeDialog()
 
 
