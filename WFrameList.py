@@ -39,6 +39,7 @@ import os
 __dir__ = os.path.dirname(__file__)
 
 __title__="FreeCAD WoodFrame List"
+# Original Python Script author : Jonathan Wiedemann
 __author__ = "Jerome Laverroux"
 __url__ = "http://www.freecadweb.org"
 
@@ -136,7 +137,6 @@ def listingfilter(items):
 
 class _CommandListing:
         "the Timber Listing command definition"
-        Console.PrintMessage("WFrameListing:\r\n")
         def GetResources(self):
            return {'Pixmap'  : __dir__ + '/icons/Timber_Listing.svg',
                     'MenuText': QtCore.QT_TRANSLATE_NOOP("Timber_Listing","Make listing"),

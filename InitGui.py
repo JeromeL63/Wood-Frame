@@ -212,7 +212,7 @@ static char *ferme[] = {
  
         
         
-        self.wframe = ["WFrameAlignViewWPlane","WFrameBeam","Arch_CutPlane","Arch_MaterialTools","WFrameList"] # A list of command names created in the line above
+        self.wframe = ["WFrameAlignViewWPlane","WFrameBeam","Arch_CutPlane","Arch_MaterialTools","WFrameList","WFrameAttributes"] # A list of command names created in the line above
         self.appendToolbar("Wood Frame",self.wframe) # creates a new toolbar with your commands
         self.appendMenu("Wood Frame",self.wframe) # creates a new menu
        # self.appendMenu(["An existing Menu","My submenu"],self.list) # appends a submenu to an existing menu
@@ -234,7 +234,7 @@ static char *ferme[] = {
                             "Draft_SelectGroup","Draft_SelectPlane",
                             "Draft_ShowSnapBar","Draft_ToggleGrid","Draft_UndoLine",
                             "Draft_FinishLine","Draft_CloseLine"]
-        self.utils = ["Draft_VisGroup","Draft_Heal","Draft_FlipDimension",
+        self.utils = ["Draft_Heal","Draft_FlipDimension",
                       "Draft_ToggleConstructionMode","Draft_ToggleContinueMode","Draft_Edit",
                       "Draft_Slope","Draft_SetWorkingPlaneProxy","Draft_AddConstruction"]
         self.snapList = ['Draft_Snap_Lock','Draft_Snap_Midpoint','Draft_Snap_Perpendicular',
