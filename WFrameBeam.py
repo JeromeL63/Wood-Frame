@@ -336,10 +336,11 @@ class BeamShadow():
 
         #set Attributes
         WFrameAttributes.insertAttr(self.structure)
-        self.structure.ViewObject.Transparency=50
+        self.structure.ViewObject.Transparency=75
         self.structure.IfcType="Beam"
         self.structure.Tag="Wood-Frame"
         self.structure.Label=self.beam.name
+        #self.structure.ShapeColor=(0.9,0.46,0.57) #not working because in view document .... erf
         #specific attributes for WFrame
         self.structure.Name=self.beam.name
 

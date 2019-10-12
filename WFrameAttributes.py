@@ -89,7 +89,7 @@ except AttributeError:
 
 
 def getAttrlist():
-    '''
+    """
     Get the attributes/properties list available
     Name: the attribute name is used to have some presets like material=C18, machining type = Purlin etc..
     Type: a beam,a wall, an axe or a pannel....
@@ -98,12 +98,12 @@ def getAttrlist():
     Sub-group: used for exemple sub-group= Wall_A1, sub-group=Wall_B2
     Prod. number : the production number it could not be editable, and a tool should be written to find same parts and give it the same number
     Inv. number : same as Prod number, but it's the invoice number
-    '''
+    """
     lst=["Name","Type","Material","Group","Sub_Group","Prod_Number","Inv_Number","Machining_Type","User1","User2","User3","User4"]
     return lst
 
 def getTypes():
-    lst=["Purlin","Pile","Truss","Pannel","Axe","Wall"]
+    lst=["Purlin","Pile","Truss","Pannel","Wall","Axe"]
     return lst
 
 def getMaterials():
@@ -131,13 +131,17 @@ def filterByAttr(objList=None,filter=""):
 
 class Ui_AttrEdit:
      def __init__(self):
+        ##retreive selected objects
         self.objList=FreeCADGui.Selection.getSelection()
+        ### onSelectionChange could be fun
 
         self.form= FreeCADGui.PySideUic.loadUi(attrUI)
-
         self.form.cb_Type.addItems(getTypes())
         self.form.cb_Material.addItems(getMaterials())
         self.form.cb_Machining.addItems(getMachining())
+        #ui setup done
+
+
         #now retreive properties of selected objects
         Console.PrintMessage("##WFrame Attr## obj name" + str(self.objList) + " \r\n")
         for obj in self.objList:
@@ -155,23 +159,21 @@ class Ui_AttrEdit:
                         self.form.led_Name.setText(obj.getPropertyByName(i))
                     else:
                         self.form.led_Name.setText(multiNames)
-                list[i] = obj.getPropertyByName(i)
+
             Console.PrintMessage("##WFrame Attr## obj name list "+str(list)+" \r\n")
         #if some properties are different show ***
 
 
 
      def accept(self):
-        Console.PrintMessage("##WFrame Attr## Accepted \r\n")
-        for obj in self.objList:
+         '''on accepted dialog'''
+         for obj in self.objList:
 
             for i in getAttrlist():
                 ###Note: I think there's an easyest way to do that in python like obj.list={}
                 #if property string equal *** do nothing
                 if i == getAttrlist()[0] and not self.form.led_Name.text()==multiNames:
                     obj.Name=self.form.led_Name.text()
-
-
-        FreeCADGui.Control.closeDialog()
+         FreeCADGui.Control.closeDialog()
 
 
