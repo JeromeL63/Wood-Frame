@@ -26,7 +26,7 @@
 #*   Jerome Laverroux 2019                                                 *
 #***************************************************************************/
 
-import FreeCAD
+import FreeCAD,FreeCADGui
 
 
 class WFrame ( Workbench ):
@@ -198,6 +198,11 @@ static char *ferme[] = {
         ]
         for (cmd, shortcut) in preset:
             FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Shortcut").SetString(cmd, shortcut)
+
+
+
+
+
         def QT_TRANSLATE_NOOP(scope, text):
             return text
 
