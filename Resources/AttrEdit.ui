@@ -130,7 +130,7 @@
     <widget class="QComboBox" name="cb_Group"/>
    </item>
    <item row="4" column="1">
-    <widget class="QComboBox" name="cb_SubGroup"/>
+    <widget class="QComboBox" name="cb_Sub_Group"/>
    </item>
    <item row="5" column="1">
     <widget class="QLineEdit" name="led_ProdNum">

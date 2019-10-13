@@ -25,6 +25,7 @@
 import FreeCAD
 import Arch,ArchComponent
 from math import *
+import WFrameUtils
 
 from PySide import QtCore,QtGui
 
@@ -43,8 +44,9 @@ __dir__ = os.path.dirname(__file__)
 __title__="FreeCAD WoodFrame Attributes"
 __author__ = "Jerome Laverroux"
 __url__ = "http://www.freecadweb.org"
-
 attrUI=__dir__+"/Resources/AttrEdit.ui"
+
+#if some properties are different show ***
 multiNames="***"
 
 class WFrameAttributes():
@@ -57,8 +59,11 @@ class WFrameAttributes():
                 'ToolTip' : "Edit attributes"}
 
     def Activated(self):
+        utils= WFrameUtils
+        print(utils.filename())
         panel = Ui_AttrEdit()
         FreeCADGui.Control.showDialog(panel)
+        #FreeCAD.getDocument()
         return
 
     def IsActive(self):
@@ -88,6 +93,19 @@ except AttributeError:
         return QtGui.QApplication.translate(context, text, disambig)
 
 
+txt_name="Name"
+txt_type="Type"
+txt_mat="Material"
+txt_group="Group"
+txt_sgroup="Sub_Group"
+txt_prodnum="Prod_Number"
+txt_invnum="Inv_Number"
+txt_mach="Machining_Type"
+txt_u1="User1"
+txt_u2="User2"
+txt_u3="User3"
+txt_u4="User4"
+
 def getAttrlist():
     """
     Get the attributes/properties list available
@@ -99,26 +117,64 @@ def getAttrlist():
     Prod. number : the production number it could not be editable, and a tool should be written to find same parts and give it the same number
     Inv. number : same as Prod number, but it's the invoice number
     """
-    lst=["Name","Type","Material","Group","Sub_Group","Prod_Number","Inv_Number","Machining_Type","User1","User2","User3","User4"]
+    lst=[txt_name,txt_type,txt_mat,txt_group,txt_sgroup,txt_prodnum,txt_invnum,txt_mach,txt_u1,txt_u2,txt_u3,txt_u4]
     return lst
 
 def getTypes():
-    lst=["Purlin","Pile","Truss","Pannel","Wall","Axe"]
+    lst=["none","Purlin","Pile","Truss","Pannel","Wall","Axe"]
     return lst
 
 def getMaterials():
-    lst=["C18","C24","Pin Cl4","GL24H","OSB3","Kerto S","Kerto Q","CTBH","CTBX"]
+    lst=["C18","C24","Pin Cl4","GL24H","OSB3","Kerto S","Kerto Q","CTBH","CTBX","BA13","Shingle","Tuile terre cuite"]
+    return lst
+def getGroups():
+    # have to search on IFC data probably better...
+    # but i don't known if there's no limit to create new groups
+    lst=["none","Charpente","Couverture","Ossature","Plancher RDC","Plancher R+1"]#etc...
+    return lst
+def getSub_Groups():
+    lst=["none","Mur_A","Mur_B","Mur_C"]#for example
+    return lst
+def getMachining_Types():
+    lst=["Marqué","Raboté"]# I really don't know what to put there, maybe @rockn should be better
     return lst
 
-def getMachining():
-    lst=[]
-    return lst
 
 def insertAttr(obj :ArchComponent.Component):
     for i in getAttrlist():
+
         #ofr tests properties aren't hidden's
         #obj.addProperty("App::PropertyString",i,"WFrame","",4)
-        obj.addProperty("App::PropertyString", i, "WFrame", "", 0)
+        if i==txt_name or i==txt_u1 or i==txt_u2 or i==txt_u3 or i==txt_u4:
+            obj.addProperty("App::PropertyString", i, "WFrame", "", 0)
+
+        elif i ==txt_type:
+            obj.addProperty("App::PropertyEnumeration", i, "WFrame","", 0)
+            obj.Type = getTypes()
+
+        elif i == txt_mat:
+            #Material already exist in "Component" section
+            pass
+
+        elif i == txt_group:
+            obj.addProperty("App::PropertyEnumeration", i, "WFrame", "", 0)
+            obj.Group = getGroups()
+
+        elif i == txt_sgroup:
+            obj.addProperty("App::PropertyEnumeration", i, "WFrame", "", 0)
+            obj.Sub_Group = getSub_Groups()
+
+        elif i == txt_mach:
+            obj.addProperty("App::PropertyEnumeration", i, "WFrame", "", 0)
+            obj.Machining_Type = getMachining_Types()
+
+        elif i==txt_prodnum or i==txt_invnum:
+            obj.addProperty("App::PropertyString", i, "WFrame", "", 4)
+
+
+
+
+
 
 
     "Insert all attributes/properties in the object"
@@ -138,12 +194,13 @@ class Ui_AttrEdit:
         self.form= FreeCADGui.PySideUic.loadUi(attrUI)
         self.form.cb_Type.addItems(getTypes())
         self.form.cb_Material.addItems(getMaterials())
-        self.form.cb_Machining.addItems(getMachining())
+        self.form.cb_Group.addItems(getGroups())
+        self.form.cb_Sub_Group.addItems(getSub_Groups())
+        self.form.cb_Machining.addItems(getMachining_Types())
         #ui setup done
 
 
         #now retreive properties of selected objects
-        Console.PrintMessage("##WFrame Attr## obj name" + str(self.objList) + " \r\n")
         for obj in self.objList:
             list={}
             for i in getAttrlist():
@@ -151,18 +208,83 @@ class Ui_AttrEdit:
                 ### please re writte this function in a descent python code
                 list[i] = obj.getPropertyByName(i)
 
-                if i == getAttrlist()[0]:
-                    #if text equal this property or empty
+
+                if i == txt_name:
                     s=self.form.led_Name.text()
-                    Console.PrintMessage("##WFrame Attr## " + str(s) + " \r\n")
                     if  (s == obj.getPropertyByName(i) ) or not(s) :
                         self.form.led_Name.setText(obj.getPropertyByName(i))
                     else:
                         self.form.led_Name.setText(multiNames)
 
-            Console.PrintMessage("##WFrame Attr## obj name list "+str(list)+" \r\n")
-        #if some properties are different show ***
+                elif i == txt_u1:
+                    s=self.form.led_User1.text()
+                    if  (s == obj.getPropertyByName(i) ) or not(s) :
+                        self.form.led_User1.setText(obj.getPropertyByName(i))
+                    else:
+                        self.form.led_User1.setText(multiNames)
 
+                elif i == txt_u2:
+                    s=self.form.led_User2.text()
+                    if  (s == obj.getPropertyByName(i) ) or not(s) :
+                        self.form.led_User2.setText(obj.getPropertyByName(i))
+                    else:
+                        self.form.led_User2.setText(multiNames)
+
+                elif i == txt_u3:
+                    s=self.form.led_User3.text()
+                    if  (s == obj.getPropertyByName(i) ) or not(s) :
+                        self.form.led_User3.setText(obj.getPropertyByName(i))
+                    else:
+                        self.form.led_User3.setText(multiNames)
+
+                elif i == txt_u4:
+                    s=self.form.led_User4.text()
+                    if  (s == obj.getPropertyByName(i) ) or not(s) :
+                        self.form.led_User4.setText(obj.getPropertyByName(i))
+                    else:
+                        self.form.led_User4.setText(multiNames)
+
+                elif i == txt_type:
+                    s=self.form.cb_Type.currentText()
+
+                    if  s == obj.getPropertyByName(i)  or s == "none" :
+                        Console.PrintMessage(txt_type + "|" + self.form.cb_Type.currentText())
+                        self.form.cb_Type.setCurrentIndex(getTypes().index(obj.getPropertyByName(i)))
+                    else:
+                        self.form.cb_Type.insertItem(0,multiNames)
+                        self.form.cb_Type.setCurrentIndex(0)
+
+                elif i == txt_mat:
+                    s=self.form.cb_Type.currentText()
+                    if  (s == obj.getPropertyByName(i) ) or s == "none" :
+                        self.form.cb_Material.setCurrentIndex(getMaterials().index(obj.getPropertyByName(i)))
+                    else:
+                        self.form.cb_Material.insertItem(0, multiNames)
+                        self.form.cb_Material.setCurrentIndex(0)
+
+                elif i == txt_group:
+                    s = self.form.cb_Group.currentText()
+                    if (s == obj.getPropertyByName(i)) or s == "none" :
+                        self.form.cb_Group.setCurrentIndex(getGroups().index(obj.getPropertyByName(i)))
+                    else:
+                        self.form.cb_Group.insertItem(0, multiNames)
+                        self.form.cb_Group.setCurrentIndex(0)
+
+                elif i == txt_sgroup:
+                    s = self.form.cb_Sub_Group.currentText()
+                    if (s == obj.getPropertyByName(i)) or s == "none" :
+                        self.form.cb_Sub_Group.setCurrentIndex(getSub_Groups().index(obj.getPropertyByName(i)))
+                    else:
+                        self.form.cb_Sub_Group.insertItem(0, multiNames)
+                        self.form.cb_Sub_Group.setCurrentIndex(0)
+
+                elif i == txt_mach:
+                    s = self.form.cb_Machining.currentText()
+                    if (s == obj.getPropertyByName(i)) or s == "none" :
+                        self.form.cb_Machining.setCurrentIndex(getMachining_Types().index(obj.getPropertyByName(i)))
+                    else:
+                        self.form.cb_Machining.insertItem(0, multiNames)
+                        self.form.cb_Machining.setCurrentIndex(0)
 
 
      def accept(self):
@@ -172,8 +294,35 @@ class Ui_AttrEdit:
             for i in getAttrlist():
                 ###Note: I think there's an easyest way to do that in python like obj.list={}
                 #if property string equal *** do nothing
-                if i == getAttrlist()[0] and not self.form.led_Name.text()==multiNames:
+                if i == txt_name and not self.form.led_Name.text()==multiNames:
                     obj.Name=self.form.led_Name.text()
+
+                elif i == txt_u1 and not self.form.led_User1.text() == multiNames:
+                    obj.User1 = self.form.led_User1.text()
+                elif i == txt_u2 and not self.form.led_User2.text() == multiNames:
+                    obj.User2 = self.form.led_User2.text()
+                elif i == txt_u3 and not self.form.led_User3.text() == multiNames:
+                    obj.User3 = self.form.led_User3.text()
+                elif i == txt_u4 and not self.form.led_User4.text() == multiNames:
+                    obj.User4 = self.form.led_User4.text()
+
+                elif i == txt_type and not self.form.cb_Type.currentText() == multiNames:
+                    obj.Type = self.form.cb_Type.currentText()
+
+                elif i == txt_mat and not self.form.cb_Material.currentText() == multiNames:
+                    #retreive Material from Component
+                    obj.Material = self.form.cb_Material.currentText()
+
+                elif i == txt_group and not self.form.cb_Group.currentText() == multiNames:
+                    obj.Group = self.form.cb_Group.currentText()
+
+                elif i == txt_sgroup and not self.form.cb_Sub_Group.currentText() == multiNames:
+                    obj.Sub_Group = self.form.cb_Sub_Group.currentText()
+
+                elif i == txt_mach and not self.form.cb_Machining.currentText() == multiNames:
+                    obj.Machining_Type = self.form.cb_Machining.currentText()
+
          FreeCADGui.Control.closeDialog()
+         FreeCAD.ActiveDocument.recompute()
 
 
