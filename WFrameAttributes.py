@@ -59,8 +59,10 @@ class WFrameAttributes():
                 'ToolTip' : "Edit attributes"}
 
     def Activated(self):
+        '''tests
         utils= WFrameUtils
         print(utils.filename())
+        '''
         panel = Ui_AttrEdit()
         FreeCADGui.Control.showDialog(panel)
         #FreeCAD.getDocument()
@@ -95,7 +97,7 @@ except AttributeError:
 
 txt_name="Name"
 txt_type="Type"
-txt_mat="Material"
+txt_wclass="WoodClass"
 txt_group="Group"
 txt_sgroup="Sub_Group"
 txt_prodnum="Prod_Number"
@@ -117,26 +119,29 @@ def getAttrlist():
     Prod. number : the production number it could not be editable, and a tool should be written to find same parts and give it the same number
     Inv. number : same as Prod number, but it's the invoice number
     """
-    lst=[txt_name,txt_type,txt_mat,txt_group,txt_sgroup,txt_prodnum,txt_invnum,txt_mach,txt_u1,txt_u2,txt_u3,txt_u4]
+    lst=[txt_name,txt_type,txt_wclass,txt_group,txt_sgroup,txt_prodnum,txt_invnum,txt_mach,txt_u1,txt_u2,txt_u3,txt_u4]
     return lst
 
 def getTypes():
     lst=["none","Purlin","Pile","Truss","Pannel","Wall","Axe"]
     return lst
 
-def getMaterials():
-    lst=["C18","C24","Pin Cl4","GL24H","OSB3","Kerto S","Kerto Q","CTBH","CTBX","BA13","Shingle","Tuile terre cuite"]
+def getWoodClasses():
+    lst=["none","C18","C24","Pin Cl4","GL24H","OSB3","Kerto S","Kerto Q","CTBH","CTBX","BA13","Shingle","Tuile terre cuite"]
     return lst
+
 def getGroups():
     # have to search on IFC data probably better...
     # but i don't known if there's no limit to create new groups
     lst=["none","Charpente","Couverture","Ossature","Plancher RDC","Plancher R+1"]#etc...
     return lst
+
 def getSub_Groups():
     lst=["none","Mur_A","Mur_B","Mur_C"]#for example
     return lst
+
 def getMachining_Types():
-    lst=["Marqué","Raboté"]# I really don't know what to put there, maybe @rockn should be better
+    lst=["none","Marqué","Raboté"]# I really don't know what to put there, maybe @rockn should be better
     return lst
 
 
@@ -152,9 +157,10 @@ def insertAttr(obj :ArchComponent.Component):
             obj.addProperty("App::PropertyEnumeration", i, "WFrame","", 0)
             obj.Type = getTypes()
 
-        elif i == txt_mat:
-            #Material already exist in "Component" section
-            pass
+        elif i == txt_wclass:
+            obj.addProperty("App::PropertyEnumeration", i, "WFrame", "", 0)
+            obj.WoodClass = getWoodClasses()
+
 
         elif i == txt_group:
             obj.addProperty("App::PropertyEnumeration", i, "WFrame", "", 0)
@@ -193,7 +199,7 @@ class Ui_AttrEdit:
 
         self.form= FreeCADGui.PySideUic.loadUi(attrUI)
         self.form.cb_Type.addItems(getTypes())
-        self.form.cb_Material.addItems(getMaterials())
+        self.form.cb_WoodClass.addItems(getWoodClasses())
         self.form.cb_Group.addItems(getGroups())
         self.form.cb_Sub_Group.addItems(getSub_Groups())
         self.form.cb_Machining.addItems(getMachining_Types())
@@ -244,30 +250,36 @@ class Ui_AttrEdit:
                     else:
                         self.form.led_User4.setText(multiNames)
 
+                ###Enumerations
+
                 elif i == txt_type:
                     s=self.form.cb_Type.currentText()
-
-                    if  s == obj.getPropertyByName(i)  or s == "none" :
-                        Console.PrintMessage(txt_type + "|" + self.form.cb_Type.currentText())
+                    if  s == obj.getPropertyByName(i)  or s == "none":
                         self.form.cb_Type.setCurrentIndex(getTypes().index(obj.getPropertyByName(i)))
                     else:
-                        self.form.cb_Type.insertItem(0,multiNames)
+                        if not self.form.cb_Type.itemText(0) == multiNames:
+                            self.form.cb_Type.insertItem(0,multiNames)
+
                         self.form.cb_Type.setCurrentIndex(0)
 
-                elif i == txt_mat:
-                    s=self.form.cb_Type.currentText()
-                    if  (s == obj.getPropertyByName(i) ) or s == "none" :
-                        self.form.cb_Material.setCurrentIndex(getMaterials().index(obj.getPropertyByName(i)))
+                # Material already exist in "Component" section, so wood class is used
+                elif i == txt_wclass:
+                    s=self.form.cb_WoodClass.currentText()
+                    if  (s == obj.getPropertyByName(i) ) or s == "none":
+                        self.form.cb_WoodClass.setCurrentIndex(getWoodClasses().index(obj.getPropertyByName(i)))
                     else:
-                        self.form.cb_Material.insertItem(0, multiNames)
-                        self.form.cb_Material.setCurrentIndex(0)
+                        if not self.form.cb_WoodClass.itemText(0) == multiNames:
+                            self.form.cb_WoodClass.insertItem(0, multiNames)
+
+                        self.form.cb_WoodClass.setCurrentIndex(0)
 
                 elif i == txt_group:
                     s = self.form.cb_Group.currentText()
-                    if (s == obj.getPropertyByName(i)) or s == "none" :
+                    if (s == obj.getPropertyByName(i)) or s == "none":
                         self.form.cb_Group.setCurrentIndex(getGroups().index(obj.getPropertyByName(i)))
                     else:
-                        self.form.cb_Group.insertItem(0, multiNames)
+                        if not self.form.cb_Group.itemText(0) == multiNames:
+                            self.form.cb_Group.insertItem(0, multiNames)
                         self.form.cb_Group.setCurrentIndex(0)
 
                 elif i == txt_sgroup:
@@ -275,7 +287,8 @@ class Ui_AttrEdit:
                     if (s == obj.getPropertyByName(i)) or s == "none" :
                         self.form.cb_Sub_Group.setCurrentIndex(getSub_Groups().index(obj.getPropertyByName(i)))
                     else:
-                        self.form.cb_Sub_Group.insertItem(0, multiNames)
+                        if not self.form.cb_Sub_Group.itemText(0) == multiNames:
+                            self.form.cb_Sub_Group.insertItem(0, multiNames)
                         self.form.cb_Sub_Group.setCurrentIndex(0)
 
                 elif i == txt_mach:
@@ -283,7 +296,8 @@ class Ui_AttrEdit:
                     if (s == obj.getPropertyByName(i)) or s == "none" :
                         self.form.cb_Machining.setCurrentIndex(getMachining_Types().index(obj.getPropertyByName(i)))
                     else:
-                        self.form.cb_Machining.insertItem(0, multiNames)
+                        if not self.form.cb_Machining.itemText(0) == multiNames:
+                            self.form.cb_Machining.insertItem(0, multiNames)
                         self.form.cb_Machining.setCurrentIndex(0)
 
 
@@ -309,9 +323,9 @@ class Ui_AttrEdit:
                 elif i == txt_type and not self.form.cb_Type.currentText() == multiNames:
                     obj.Type = self.form.cb_Type.currentText()
 
-                elif i == txt_mat and not self.form.cb_Material.currentText() == multiNames:
-                    #retreive Material from Component
-                    obj.Material = self.form.cb_Material.currentText()
+                elif i == txt_wclass and not self.form.cb_WoodClass.currentText() == multiNames:
+
+                    obj.WoodClass = self.form.cb_WoodClass.currentText()
 
                 elif i == txt_group and not self.form.cb_Group.currentText() == multiNames:
                     obj.Group = self.form.cb_Group.currentText()
