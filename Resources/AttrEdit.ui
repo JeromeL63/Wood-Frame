@@ -20,41 +20,6 @@
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Name</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Material</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="text">
-      <string>Group</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Type</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="label_6">
-     <property name="text">
-      <string>Production Number</string>
-     </property>
-    </widget>
-   </item>
    <item row="6" column="0">
     <widget class="QLabel" name="label_7">
      <property name="text">
@@ -62,10 +27,45 @@
      </property>
     </widget>
    </item>
+   <item row="7" column="1">
+    <widget class="QComboBox" name="cb_Machining"/>
+   </item>
+   <item row="10" column="1">
+    <widget class="QLineEdit" name="led_User3"/>
+   </item>
+   <item row="4" column="1">
+    <widget class="QComboBox" name="cb_Sub_Group"/>
+   </item>
    <item row="8" column="0">
     <widget class="QLabel" name="label_9">
      <property name="text">
       <string>User 1</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QComboBox" name="cb_Group"/>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="label_10">
+     <property name="text">
+      <string>User 2</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="1">
+    <widget class="QLineEdit" name="led_User4"/>
+   </item>
+   <item row="8" column="1">
+    <widget class="QLineEdit" name="led_User1"/>
+   </item>
+   <item row="2" column="1">
+    <widget class="QComboBox" name="cb_WoodClass"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Wood Class</string>
      </property>
     </widget>
    </item>
@@ -76,17 +76,17 @@
      </property>
     </widget>
    </item>
-   <item row="9" column="0">
-    <widget class="QLabel" name="label_10">
-     <property name="text">
-      <string>User 2</string>
-     </property>
-    </widget>
-   </item>
    <item row="7" column="0">
     <widget class="QLabel" name="label_8">
      <property name="text">
       <string>Machining Type</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLineEdit" name="led_ProdNum">
+     <property name="enabled">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
@@ -103,12 +103,22 @@
      </property>
     </spacer>
    </item>
-   <item row="10" column="0">
-    <widget class="QLabel" name="label_11">
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>User 3</string>
+      <string>Type</string>
      </property>
     </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Name</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="cb_Type"/>
    </item>
    <item row="11" column="0">
     <widget class="QLabel" name="label_12">
@@ -117,25 +127,23 @@
      </property>
     </widget>
    </item>
+   <item row="9" column="1">
+    <widget class="QLineEdit" name="led_User2"/>
+   </item>
    <item row="0" column="1">
     <widget class="QLineEdit" name="led_Name"/>
    </item>
-   <item row="1" column="1">
-    <widget class="QComboBox" name="cb_Type"/>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Group</string>
+     </property>
+    </widget>
    </item>
-   <item row="2" column="1">
-    <widget class="QComboBox" name="cb_WoodClass"/>
-   </item>
-   <item row="3" column="1">
-    <widget class="QComboBox" name="cb_Group"/>
-   </item>
-   <item row="4" column="1">
-    <widget class="QComboBox" name="cb_Sub_Group"/>
-   </item>
-   <item row="5" column="1">
-    <widget class="QLineEdit" name="led_ProdNum">
-     <property name="enabled">
-      <bool>false</bool>
+   <item row="10" column="0">
+    <widget class="QLabel" name="label_11">
+     <property name="text">
+      <string>User 3</string>
      </property>
     </widget>
    </item>
@@ -146,20 +154,77 @@
      </property>
     </widget>
    </item>
-   <item row="7" column="1">
-    <widget class="QComboBox" name="cb_Machining"/>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="text">
+      <string>Production Number</string>
+     </property>
+    </widget>
    </item>
-   <item row="8" column="1">
-    <widget class="QLineEdit" name="led_User1"/>
+   <item row="2" column="2">
+    <widget class="QPushButton" name="addWoodClass">
+     <property name="maximumSize">
+      <size>
+       <width>25</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>+</string>
+     </property>
+    </widget>
    </item>
-   <item row="9" column="1">
-    <widget class="QLineEdit" name="led_User2"/>
+   <item row="1" column="2">
+    <widget class="QPushButton" name="addType">
+     <property name="maximumSize">
+      <size>
+       <width>25</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>+</string>
+     </property>
+    </widget>
    </item>
-   <item row="10" column="1">
-    <widget class="QLineEdit" name="led_User3"/>
+   <item row="3" column="2">
+    <widget class="QPushButton" name="addGroup">
+     <property name="maximumSize">
+      <size>
+       <width>25</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>+</string>
+     </property>
+    </widget>
    </item>
-   <item row="11" column="1">
-    <widget class="QLineEdit" name="led_User4"/>
+   <item row="4" column="2">
+    <widget class="QPushButton" name="addSubGroup">
+     <property name="maximumSize">
+      <size>
+       <width>25</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>+</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="2">
+    <widget class="QPushButton" name="addMachining">
+     <property name="maximumSize">
+      <size>
+       <width>25</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>+</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

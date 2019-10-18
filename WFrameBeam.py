@@ -59,7 +59,10 @@ class WFrameBeam():
                 'ToolTip' : "Create an advanced beam with better positionning method"}
 
     def Activated(self):
+
+        print(FreeCADGui.ActiveDocument.Document.FileName)
         Positionning()
+
         """Do something here"""
         return
 
@@ -67,6 +70,7 @@ class WFrameBeam():
         """Here you can define if the command must be active or not (greyed) if certain conditions
         are met or not. This function is optional."""
         if FreeCADGui.ActiveDocument:
+
             return True
         else:
             return False

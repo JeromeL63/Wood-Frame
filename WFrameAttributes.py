@@ -24,6 +24,7 @@
 
 import FreeCAD
 import Arch,ArchComponent
+import xml.etree.ElementTree
 from math import *
 import WFrameUtils
 
@@ -59,10 +60,6 @@ class WFrameAttributes():
                 'ToolTip' : "Edit attributes"}
 
     def Activated(self):
-        '''tests
-        utils= WFrameUtils
-        print(utils.filename())
-        '''
         panel = Ui_AttrEdit()
         FreeCADGui.Control.showDialog(panel)
         #FreeCAD.getDocument()
@@ -203,11 +200,25 @@ class Ui_AttrEdit:
         self.form.cb_Group.addItems(getGroups())
         self.form.cb_Sub_Group.addItems(getSub_Groups())
         self.form.cb_Machining.addItems(getMachining_Types())
+
+        self.form.addType.clicked.connect(self.addType)
+        self.form.addWoodClass.clicked.connect(self.addWoodClass)
+        self.form.addGroup.clicked.connect(self.addGroup)
+        self.form.addSubGroup.clicked.connect(self.addSubGroup)
+        self.form.addMachining.clicked.connect(self.addMachining)
+
         #ui setup done
 
 
         #now retreive properties of selected objects
         for obj in self.objList:
+
+            #test if the object have WFrame attributes
+            if not 'Name' in obj.PropertiesList:
+                #if not insert them
+                insertAttr(obj)
+
+
             list={}
             for i in getAttrlist():
                 ###Where is switch in python ??? :'(
@@ -338,5 +349,23 @@ class Ui_AttrEdit:
 
          FreeCADGui.Control.closeDialog()
          FreeCAD.ActiveDocument.recompute()
+
+     def addGroup(self):
+         print("group")
+
+     def addSubGroup(self):
+         print("subgroup")
+
+
+     def addType(self):
+         print("type")
+
+
+     def addWoodClass(self):
+         print("Woodclass")
+
+
+     def addMachining(self):
+         print("machining")
 
 

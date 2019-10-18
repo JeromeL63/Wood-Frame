@@ -196,6 +196,7 @@ static char *ferme[] = {
             ("Std_BoxSelection","b"),
 
         ]
+
         for (cmd, shortcut) in preset:
             FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Shortcut").SetString(cmd, shortcut)
 
