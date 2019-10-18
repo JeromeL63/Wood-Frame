@@ -10,7 +10,7 @@ It uses the FreeCAD Draft and Arch workbenches.
 
 
 ### Prerequisites
-- [x] FreeCAD >= v0.??
+- [x] FreeCAD >= v0.19
 - [ ] 
 
 ### Installation
@@ -37,7 +37,7 @@ Result: You should see the Wood Workbench available in the Workbench drop-down m
 
 ```bash
 cd ~/.FreeCAD/Mod
-git clone https://github.com/j-wiedemann/FreeCAD-Timber/
+git clone https://github.com/JeromeL63/Wood-Frame
 ```
 
 **Note:** To stay up-to-date with FreeCAD Wood Workench:  
