@@ -1,21 +1,24 @@
 <?xml version='1.0' encoding='utf-8'?>
 <attributes>
   <Name name="" />
-  <Name name="Chevron" />
+    <Name name="Chevron">
+      <WoodClass>C18</WoodClass>
+        <Color>(0,255,0)</Color>
+        <Type>Beam</Type>
+  </Name>
   <Name name="Panne" />
   <Name name="Poinçon" />
-  <Type name="none" />
-  <Type name="Purlin" />
-  <Type name="Pile" />
-  <Type name="Truss" />
-  <Type name="Panel" />
-  <Type name="Wall" />
-  <Type name="Axe" />
+    <Name name="OSB">
+      <WoodClass>OSB3</WoodClass>
+        <Color>(0,0,255)</Color>
+        <Type>Beam</Type>
+  </Name>
   <WoodClass name="C18" />
   <WoodClass name="C24" />
   <WoodClass name="GL24H" />
   <WoodClass name="Kerto S" />
   <WoodClass name="Kerto Q" />
+  <WoodClass name="OSB3" />
   <WoodClass name="CTBH" />
   <WoodClass name="CTBX" />
   <WoodClass name="BA13" />
@@ -36,4 +39,6 @@
   <User2 name="" />
   <User3 name="" />
   <User4 name="" />
+  <Name name="Mur" />
 </attributes>
+

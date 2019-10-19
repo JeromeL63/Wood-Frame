@@ -145,8 +145,9 @@ def getAttrlist():
     for child in xmlroot:
         if not child.tag in lst:
             lst.append(child.tag)
-    lst.append("Prod_Number")
-    lst.append("Inv_Number")
+    lst.append(txt_type)
+    lst.append(txt_prodnum)
+    lst.append(txt_invnum)
     return lst
 
 
@@ -158,9 +159,7 @@ def getNames():
 
 
 def getTypes():
-    lst = []
-    for child in xmlroot.findall(txt_type):
-        lst.append(child.attrib['name'])
+    lst = ["Bar","Panel","Axe","Auxiliary"]
     return lst
 
 
@@ -229,7 +228,8 @@ class Ui_AttrEdit:
         self.form.cb_Machining.setCurrentIndex(-1)
 
         self.form.addName.clicked.connect(self.addName)
-        self.form.addType.clicked.connect(self.addType)
+        # no more propositions
+        # self.form.addType.clicked.connect(self.addType)
         self.form.addWoodClass.clicked.connect(self.addWoodClass)
         self.form.addGroup.clicked.connect(self.addGroup)
         self.form.addSubGroup.clicked.connect(self.addSubGroup)
@@ -340,7 +340,7 @@ class Ui_AttrEdit:
             self.form.cb_Name.addItems(getNames())
             ind=self.form.cb_Name.count()-1
             self.form.cb_Name.setCurrentIndex(ind)
-
+    '''
     def addType(self):
         value, ok = QtGui.QInputDialog.getText(None, "Section", "new " + txt_type, QtGui.QLineEdit.Normal, "")
         if ok:
@@ -349,6 +349,7 @@ class Ui_AttrEdit:
             self.form.cb_Type.addItems(getNames())
             ind = self.form.cb_Type.count() - 1
             self.form.cb_Type.setCurrentIndex(ind)
+    '''
 
     def addWoodClass(self):
         ###TODO
@@ -470,3 +471,9 @@ class Ui_AttrSelect:
 
 
 
+class presets:
+    def __init__(self):
+        pass
+    def set(self,obj):
+        # set default values with the object.Name
+        pass

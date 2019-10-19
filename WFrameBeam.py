@@ -344,6 +344,7 @@ class BeamShadow():
         self.structure.ViewObject.Transparency=75
         self.structure.IfcType="Beam"
         self.structure.Tag="Wood-Frame"
+        self.structure.Type="Bar"
         self.structure.Label=self.beam.name
         # set color
         r=(1/255)*229
