@@ -333,7 +333,7 @@ class Ui_AttrEdit:
 
 
     def addName(self):
-        value, ok = QtGui.QInputDialog.getText(None, "Section", "new "+txt_name, QtGui.QLineEdit.Normal, "")
+        value, ok = QtGui.QInputDialog.getText(None, "Add", "new "+txt_name, QtGui.QLineEdit.Normal, "")
         if ok :
             writexml(txt_name,value)
             self.form.cb_Name.clear()
@@ -342,7 +342,7 @@ class Ui_AttrEdit:
             self.form.cb_Name.setCurrentIndex(ind)
     '''
     def addType(self):
-        value, ok = QtGui.QInputDialog.getText(None, "Section", "new " + txt_type, QtGui.QLineEdit.Normal, "")
+        value, ok = QtGui.QInputDialog.getText(None, "Add", "new " + txt_type, QtGui.QLineEdit.Normal, "")
         if ok:
             writexml(txt_type,value)
             self.form.cb_Type.clear()
@@ -352,21 +352,40 @@ class Ui_AttrEdit:
     '''
 
     def addWoodClass(self):
-        ###TODO
-        print("Woodclass")
+        value, ok = QtGui.QInputDialog.getText(None, "Add", "new " + txt_wclass, QtGui.QLineEdit.Normal, "")
+        if ok:
+            writexml(txt_wclass, value)
+            self.form.cb_WoodClass.clear()
+            self.form.cb_WoodClass.addItems(getWoodClasses())
+            ind = self.form.cb_WoodClass.count() - 1
+            self.form.cb_WoodClass.setCurrentIndex(ind)
 
     def addGroup(self):
-        ###TODO
-        print("addgroup")
+        value, ok = QtGui.QInputDialog.getText(None, "Add", "new " + txt_group, QtGui.QLineEdit.Normal, "")
+        if ok:
+            writexml(txt_group, value)
+            self.form.cb_Group.clear()
+            self.form.cb_Group.addItems(getGroups())
+            ind = self.form.cb_Group.count() - 1
+            self.form.cb_Group.setCurrentIndex(ind)
 
     def addSubGroup(self):
-        ###TODO
-        print("subgroup")
+        value, ok = QtGui.QInputDialog.getText(None, "Add", "new " + txt_sgroup, QtGui.QLineEdit.Normal, "")
+        if ok:
+            writexml(txt_sgroup, value)
+            self.form.cb_Sub_Group.clear()
+            self.form.cb_Sub_Group.addItems(getSub_Groups())
+            ind = self.form.cb_Sub_Group.count() - 1
+            self.form.cb_Sub_Group.setCurrentIndex(ind)
 
     def addMachining(self):
-        ###TODO
-        print("machining")
-
+        value, ok = QtGui.QInputDialog.getText(None, "Add", "new " + txt_mach, QtGui.QLineEdit.Normal, "")
+        if ok:
+            writexml(txt_mach, value)
+            self.form.cb_Machining.clear()
+            self.form.cb_Machining.addItems(getMachining_Types())
+            ind = self.form.cb_Machining.count() - 1
+            self.form.cb_Machining.setCurrentIndex(ind)
 
 def writexml(tag,value):
     '''add a line in the xml file'''
@@ -476,4 +495,5 @@ class presets:
         pass
     def set(self,obj):
         # set default values with the object.Name
+        # TODO
         pass

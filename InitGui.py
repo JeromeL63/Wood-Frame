@@ -220,9 +220,15 @@ static char *ferme[] = {
  
         
         
-        self.wframe = ["WFrameAlignViewWPlane","WFrameBeam","Arch_CutPlane","Arch_MaterialTools","WFrameList","WFEditAttributes","WFSelectByAttributes"] # A list of command names created in the line above
+        self.wframe = ["WFrameAlignViewWPlane",
+                       "WFrameBeam","Arch_CutPlane",
+                       "WFCopy",
+                       "WFrameList",
+                       "WFEditAttributes",
+                       "WFSelectByAttributes"] # A list of command names created in the line above
         self.appendToolbar("Wood Frame",self.wframe) # creates a new toolbar with your commands
         self.appendMenu("Wood Frame",self.wframe) # creates a new menu
+
        # self.appendMenu(["An existing Menu","My submenu"],self.list) # appends a submenu to an existing menu
        
        #add draft toolbar
