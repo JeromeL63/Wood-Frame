@@ -213,10 +213,11 @@ class Positionning:
         beam.orientation,ok= QtGui.QInputDialog.getItem(None,"Orientation","sens de la barre",beamor,0,False)
         Console.PrintMessage("Positionning:"+str(ok)+"\r\n")
         if ok :
-            beam.name,ok= QtGui.QInputDialog.getText(None,"Attributes","name:",QtGui.QLineEdit.Normal,beam.name)
+            names=WFrameAttributes.getNames()
+            beam.name,ok= QtGui.QInputDialog.getItem(None,"Attributes","name:",names,1,False)
             if ok:
                 types=WFrameAttributes.getTypes()
-                beam.preset,ok= QtGui.QInputDialog.getItem(None,"Attributes","type:",types,beam.type,False)
+                beam.preset,ok= QtGui.QInputDialog.getItem(None,"Attributes","type:",types,1,False)
                 if ok:
                     beam.width,ok= QtGui.QInputDialog.getText(None,"Section","Largeur(mm):",QtGui.QLineEdit.Normal,"45")
                     if ok:
@@ -346,7 +347,7 @@ class BeamShadow():
         self.structure.Label=self.beam.name
         #self.structure.ShapeColor=(0.9,0.46,0.57) #not working because in view document .... erf
         #specific attributes for WFrame
-        self.structure.Name=self.beam.name
+        #self.structure.Name=self.beam.name
 
         # then recompute
         FreeCAD.ActiveDocument.recompute()

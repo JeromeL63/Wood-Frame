@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8'?>
+<attributes>
+  <Name name="" />
+  <Name name="Chevron" />
+  <Name name="Panne" />
+  <Name name="Poinçon" />
+  <Type name="none" />
+  <Type name="Purlin" />
+  <Type name="Pile" />
+  <Type name="Truss" />
+  <Type name="Panel" />
+  <Type name="Wall" />
+  <Type name="Axe" />
+  <WoodClass name="C18" />
+  <WoodClass name="C24" />
+  <WoodClass name="GL24H" />
+  <WoodClass name="Kerto S" />
+  <WoodClass name="Kerto Q" />
+  <WoodClass name="CTBH" />
+  <WoodClass name="CTBX" />
+  <WoodClass name="BA13" />
+  <WoodClass name="Shingle" />
+  <WoodClass name="Tuiles terre cuite" />
+  <Group name="none" />
+  <Group name="Charpente" />
+  <Group name="Couverture" />
+  <Group name="Ossature" />
+  <Group name="Plancher RDC" />
+  <Group name="Plancher R+1" />
+  <SubGroup name="none" />
+  <SubGroup name="Mur A" />
+  <SubGroup name="Mur_B" />
+  <SubGroup name="Mur_C" />
+  <MachiningType name="" />
+  <User1 name="" />
+  <User2 name="" />
+  <User3 name="" />
+  <User4 name="" />
+</attributes>
