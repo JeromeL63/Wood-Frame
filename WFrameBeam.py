@@ -216,18 +216,18 @@ class Positionning:
             names=WFrameAttributes.getNames()
             beam.name,ok= QtGui.QInputDialog.getItem(None,"Attributes","name:",names,1,False)
             if ok:
-                types=WFrameAttributes.getTypes()
-                beam.preset,ok= QtGui.QInputDialog.getItem(None,"Attributes","type:",types,1,False)
+                #types=WFrameAttributes.getTypes()
+                #beam.preset,ok= QtGui.QInputDialog.getItem(None,"Attributes","type:",types,1,False)
+                #if ok:
+                beam.width,ok= QtGui.QInputDialog.getText(None,"Section","Largeur(mm):",QtGui.QLineEdit.Normal,"45")
                 if ok:
-                    beam.width,ok= QtGui.QInputDialog.getText(None,"Section","Largeur(mm):",QtGui.QLineEdit.Normal,"45")
+                    beam.width=float(beam.width)
+                    beam.height,ok= QtGui.QInputDialog.getText(None,"Section","hauteur(mm):",QtGui.QLineEdit.Normal,"145")
                     if ok:
-                        beam.width=float(beam.width)
-                        beam.height,ok= QtGui.QInputDialog.getText(None,"Section","hauteur(mm):",QtGui.QLineEdit.Normal,"145")
-                        if ok:
-                            beam.height=float(beam.height)
-                            if beam.orientation == beamor[2] :
-                                beam.length = float(QtGui.QInputDialog.getText(None,"Section","longueur(mm):",QtGui.QLineEdit.Normal,"1000")[0])
-                            BeamVector(beam)
+                        beam.height=float(beam.height)
+                        if beam.orientation == beamor[2] :
+                            beam.length = float(QtGui.QInputDialog.getText(None,"Section","longueur(mm):",QtGui.QLineEdit.Normal,"1000")[0])
+                        BeamVector(beam)
 
 class BeamShadow():
     def __init__(self,points,beam):
@@ -345,9 +345,13 @@ class BeamShadow():
         self.structure.IfcType="Beam"
         self.structure.Tag="Wood-Frame"
         self.structure.Label=self.beam.name
-        #self.structure.ShapeColor=(0.9,0.46,0.57) #not working because in view document .... erf
+        # set color
+        r=(1/255)*229
+        g=(1/255)*181
+        b=(1/255)*122
+        self.structure.ViewObject.ShapeColor=(r,g,b)
         #specific attributes for WFrame
-        #self.structure.Name=self.beam.name
+        self.structure.Name=self.beam.name
 
         # then recompute
         FreeCAD.ActiveDocument.recompute()
