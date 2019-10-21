@@ -67,7 +67,7 @@ class WFCopy():
         if point == None:
             self.tracker.finalize()
         else:
-            self.copySelection(basePoint=self.basePoint,endPoint=point)
+            copySelection(basePoint=self.basePoint,endPoint=point)
 
 
     def update(self, point, info):
@@ -82,61 +82,58 @@ class WFCopy():
         else:
             return False
 
-    def copySelection(self,basePoint=FreeCAD.Vector(0,0,0), endPoint=FreeCAD.Vector(0,0,0),objlist=None,number=1):
-        '''
-        Function to copy objects
-
-        :param basePoint: base point of displacement vector
-        :param endPoint:  end point of displacement vector
-        :param objlist: List of objects
-        :param number: Number of copies
-        '''
-        for i in range(0, number):
-            print(i)
-            initial = []
-            # save all objects present in file
-            listobj = FreeCAD.ActiveDocument.Objects
-            for lbl in listobj:
-                initial.append(lbl.Label)
-
-            print(initial)
-            FreeCADGui.runCommand('Std_Copy', 0)
-            FreeCADGui.runCommand('Std_Paste', 0)
-            after = FreeCAD.ActiveDocument.Objects
-            lst = []
-            # search diff between before and after copy
-            for lbl in after:
-                if not lbl.Label in initial and not "CutVolume" in lbl.Label:
-                    #TODO cut volume isn't applied but is in right place :'(
-                    lst.append(lbl)
-
-            FreeCADGui.Selection.clearSelection()
-
-            for obj in lst:
-                FreeCADGui.Selection.addSelection(obj)
-            objlist = FreeCADGui.Selection.getSelection()
-
-            self.translateSelection(basePoint,endPoint,objlist)
-
-
-    def translateSelection(self,basePoint,endPoint,objlist=None):
-
-        # now get vector between two points
-        vec = FreeCAD.Vector(endPoint[0] - basePoint[0], endPoint[1] - basePoint[1], endPoint[2] - basePoint[2])
-        FreeCADGui.Selection.clearSelection()
-        for obj in objlist:
-            # and then translate Object Base point with the given vector
-            origin = obj.Placement.Base
-            finalPoint = FreeCAD.Vector(origin[0] + vec[0], origin[1] + vec[1], origin[2] + vec[2])
-            obj.Placement.Base = finalPoint
-            FreeCADGui.Selection.addSelection(obj)
-        FreeCAD.ActiveDocument.recompute()
 
 FreeCADGui.addCommand('WFCopy', WFCopy())
 
 
+def copySelection(basePoint=FreeCAD.Vector(0, 0, 0), endPoint=FreeCAD.Vector(0, 0, 0), objlist=None, number=3):
+    '''
+    Function to copy objects
+
+    :param basePoint: base point of displacement vector
+    :param endPoint:  end point of displacement vector
+    :param objlist: List of objects
+    :param number: Number of copies
+    '''
+    for i in range(0, number):
+        print(i)
+        initial = []
+        # save all objects present in file
+        listobj = FreeCAD.ActiveDocument.Objects
+        for lbl in listobj:
+            initial.append(lbl.Label)
+
+        print(initial)
+        FreeCADGui.runCommand('Std_Copy', 0)
+        FreeCADGui.runCommand('Std_Paste', 0)
+        after = FreeCAD.ActiveDocument.Objects
+        lst = []
+        # search diff between before and after copy
+        for lbl in after:
+            if not lbl.Label in initial and not "CutVolume" in lbl.Label:
+                # TODO cut volume isn't applied but is in right place :'(
+                lst.append(lbl)
+
+        FreeCADGui.Selection.clearSelection()
+
+        for obj in lst:
+            FreeCADGui.Selection.addSelection(obj)
+        objlist = FreeCADGui.Selection.getSelection()
+
+        translateSelection(basePoint, endPoint, objlist)
 
 
-
-
-
+def translateSelection(basePoint,endPoint,objlist=None):
+    if objlist :
+        # now get vector between two points
+        vec = FreeCAD.Vector(endPoint[0] - basePoint[0], endPoint[1] - basePoint[1], endPoint[2] - basePoint[2])
+        print(vec)
+        FreeCADGui.Selection.clearSelection()
+        for obj in objlist:
+            # and then translate Object Base point with the given vector
+            origin = obj.Placement.Base
+            print("origin",origin,"name",obj.Label)
+            finalPoint = FreeCAD.Vector(origin[0] + vec[0], origin[1] + vec[1], origin[2] + vec[2])
+            obj.Placement.Base = finalPoint
+            FreeCADGui.Selection.addSelection(obj)
+        FreeCAD.ActiveDocument.recompute()
