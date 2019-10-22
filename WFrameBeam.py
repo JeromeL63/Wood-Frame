@@ -23,7 +23,7 @@
 
 
 import FreeCAD, Arch, Draft,ArchComponent, DraftVecUtils,ArchCommands, ArchStructure,math,FreeCADGui
-from FreeCAD import Base, Console, Vector,Rotation
+from FreeCAD import Base, Vector,Rotation
 from math import *
 
 import DraftTrackers
@@ -32,7 +32,6 @@ import WFrameAttributes
 
 if FreeCAD.GuiUp:
     import FreeCADGui
-    from PySide import QtCore, QtGui
     from DraftTools import translate
 else:
     def translate(ctxt,txt):
@@ -45,9 +44,11 @@ __title__="FreeCAD WoodFrame Beam"
 __author__ = "Jerome Laverroux"
 __url__ = "http://www.freecadweb.org"
 
+addBeamUI = __dir__ + "/Resources/Ui/AddBeam.ui"
 
 
-from PySide import QtGui
+
+from PySide import QtGui,QtCore
 
 class WFrameBeam():
     """WFrameBeam"""
@@ -61,9 +62,9 @@ class WFrameBeam():
     def Activated(self):
 
         print(FreeCADGui.ActiveDocument.Document.FileName)
-        Positionning()
+        panel = Ui_Positionning()
+        FreeCADGui.Control.showDialog(panel)
 
-        """Do something here"""
         return
 
     def IsActive(self):        
@@ -203,35 +204,60 @@ class BeamOffset():
         FreeCAD.ActiveDocument.recompute()
 
 
-
-
-class Positionning:
+class Ui_Positionning:
     def __init__(self):
-        beam=BeamDef()
-        beamor=beam.getOrientationTypes()        
+        self.beam = BeamDef()
+        self.isLength=False
 
-        beam.orientation,ok= QtGui.QInputDialog.getItem(None,"Orientation","sens de la barre",beamor,0,False)
-        Console.PrintMessage("Positionning:"+str(ok)+"\r\n")
-        if ok :
-            names=WFrameAttributes.getNames()
-            beam.name,ok= QtGui.QInputDialog.getItem(None,"Attributes","name:",names,1,False)
-            if ok:
-                #types=WFrameAttributes.getTypes()
-                #beam.preset,ok= QtGui.QInputDialog.getItem(None,"Attributes","type:",types,1,False)
-                #if ok:
-                beam.width,ok= QtGui.QInputDialog.getText(None,"Section","Largeur(mm):",QtGui.QLineEdit.Normal,"45")
-                if ok:
-                    beam.width=float(beam.width)
-                    beam.height,ok= QtGui.QInputDialog.getText(None,"Section","hauteur(mm):",QtGui.QLineEdit.Normal,"145")
-                    if ok:
-                        beam.height=float(beam.height)
-                        if beam.orientation == beamor[2] :
-                            beam.length = float(QtGui.QInputDialog.getText(None,"Section","longueur(mm):",QtGui.QLineEdit.Normal,"1000")[0])
-                        BeamVector(beam)
+        self.form = FreeCADGui.PySideUic.loadUi(addBeamUI)
+        self.form.cb_Orientation.addItems(self.beam.getOrientationTypes())
+        self.form.cb_Name.addItems(WFrameAttributes.getNames())
+        self.form.led_Length.setVisible(False)
+        self.form.lbl_Length.setVisible(False)
+
+        self.form.led_Height.setText("220")
+        self.form.led_Width.setText("100")
+
+        ##Wrong decimal point with french keyboard !
+        ## QLocale doesn't solve problem
+        validator= QtGui.QDoubleValidator(0,99999,1)
+        self.form.led_Length.setValidator(validator)
+        self.form.led_Height.setValidator(validator)
+        self.form.led_Width.setValidator(validator)
+
+        #connections
+        self.form.cb_Orientation.currentIndexChanged.connect(self.showLength)
+
+    def showLength(self):
+        #if cut view
+        print("showLength",self.form.cb_Orientation.currentIndex())
+        if self.form.cb_Orientation.currentIndex() == 2:
+            self.form.led_Length.setVisible(True)
+            self.form.lbl_Length.setVisible(True)
+            self.form.led_Length.setText("1000")
+            self.isLength=True
+
+        else:
+            self.form.led_Length.setVisible(False)
+            self.form.lbl_Length.setVisible(False)
+            self.beam.length = ""
+            self.isLength=False
+
+    def accept(self):
+        self.beam.orientation=self.form.cb_Orientation.currentText()
+        self.beam.name=self.form.cb_Name.currentText()
+        self.beam.width=self.form.led_Width.text()
+        self.beam.height=self.form.led_Height.text()
+        if self.isLength:
+            self.beam.length=self.form.led_Length.text()
+
+        FreeCADGui.Control.closeDialog()
+        BeamVector(self.beam)
+
 
 class BeamShadow():
     def __init__(self,points,beam):
-        Console.PrintMessage("##BeamTracker## Beam Shadow \r\n")
+        print("##BeamTracker## Beam Shadow \r\n")
         #used to prevent first click
         self.beam=beam
         self.clickCount=0
@@ -244,13 +270,13 @@ class BeamShadow():
         self.evalrot = self.beam.getOrientationTypes()
         self.structure = None
 
+        ###TODO numpad Positionning disabled at the moment
+
         # try to retreive keyboard numpad to place beam with points
         self.curview= Draft.get3DView()
         #self.call= self.curview.addEventCallback("SoEvent",self.action)
+        # self.status="PAD_5"
         self.opoint=FreeCAD.Vector(0,0,0)
-        #self.status="PAD_5"
-
-
 
     def  createShadow(self,structure=None):
         self.clickCount=0
@@ -322,11 +348,11 @@ class BeamShadow():
         self.vecAngle[1]=self.localPoints[1][1]-self.localPoints[0][1]
         self.vecAngle[2]=self.localPoints[1][2]-self.localPoints[0][2]
         #along workingplane normal
-        Console.PrintMessage("##BeamTracker## Workplan normal "+str(self.normal)+"\r\n")
+        print("##BeamTracker## Workplan normal "+str(self.normal)+"\r\n")
 
 
         self.angle=DraftVecUtils.angle(self.vecAngle,normal=self.normal)
-        Console.PrintMessage("##BeamTracker## Angle before "+str(self.angle)+"°\r\n")
+        print("##BeamTracker## Angle before "+str(self.angle)+"°\r\n")
 
         ####WARNING
         #angles 90 and -90 are inverted on Draft on XY plan
@@ -359,7 +385,7 @@ class BeamShadow():
 
 
     def askInsPoint(self):
-        Console.PrintMessage("##BeamTracker## Ask ins point\r\n")
+        print("##BeamTracker## Ask ins point\r\n")
         self.tracker=DraftTrackers.lineTracker()
         FreeCADGui.Snapper.getPoint(callback=self.getSartPoint)
 
@@ -380,7 +406,7 @@ class BeamShadow():
 
         if (arg["Type"] == "SoMouseButtonEvent") and (arg["Button"] == "BUTTON1") and  (arg["State"] == "UP"):
             self.clickCount+=1
-            Console.PrintMessage("##BeamTracker## Mouse BUTTON1 pressed\r\n")
+            print("##BeamTracker## Mouse BUTTON1 pressed\r\n")
             if self.clickCount == 2:
                 self.finalize()
                 self.finish()
@@ -499,7 +525,7 @@ class BeamShadow():
        if self.call:
             try:
                 self.curview.removeEventCallback("SoEvent",self.call)
-                Console.PrintMessage("##BeamTracker## event callback removed \r\n")
+                print("##BeamTracker## event callback removed \r\n")
 
             #except RuntimeError:
             except :

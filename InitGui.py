@@ -185,6 +185,10 @@ static char *ferme[] = {
         disabling numpad shortcuts
         to use for positionning and quick launch
         '''
+
+
+
+
         preset = [
             ("Std_ViewAxo"   , "CTRL+0"),
             ("Std_ViewFront" , "CTRL+1"),
