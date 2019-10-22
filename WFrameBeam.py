@@ -258,7 +258,9 @@ class Beam():
     def setOffset(self,off=Base.Vector(0,0,0)):
 
         orig=self.points[0]
+        orig=FreeCAD.DraftWorkingPlane.getLocalCoords(orig)
         vector=FreeCAD.Vector(orig[0]-off[0],orig[1]-off[1],orig[2]-off[2])
+        vector= FreeCAD.DraftWorkingPlane.getGlobalCoords(vector)
         self.currentInsPoint=vector
         self.setOrientation()
         self.setRotations()
@@ -307,7 +309,6 @@ class Beam():
         # along workingplane normal
 
         self.angle = DraftVecUtils.angle(self.vecAngle, normal=self.normal)
-
 
         ####WARNING
         # angles 90 and -90 are inverted on Draft on XY plan
