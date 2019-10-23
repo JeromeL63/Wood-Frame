@@ -306,18 +306,11 @@ class Beam():
 
         # along workingplane normal
         self.angle= DraftVecUtils.angle(self.wplan.u,self.vecAngle,self.wplan.axis)
-        #self.angle = DraftVecUtils.angle(self.vecAngle, normal=self.normal)
 
-        ####WARNING
-        # angles 90 and -90 are inverted on Draft on XY plan
-        #if self.normal == FreeCAD.Vector(0.0, 0.0, 1.0):
-        #    self.normal = FreeCAD.Vector(0, 0, -1)
 
         self.angle = degrees(self.angle)
+        #rotate in the current working plane
         Draft.rotate(self.structure, self.angle, center=self.points[0], axis=self.wplan.getNormal(), copy=False)
-
-        #Draft.rotate(self.structure, self.angle, center=self.points[0], axis=self.normal, copy=False)
-
         FreeCAD.ActiveDocument.recompute()
 
 
