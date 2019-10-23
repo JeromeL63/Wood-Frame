@@ -210,7 +210,6 @@ class Beam():
             self.structure = Arch.makeStructure(None, self.beamdef.length, self.beamdef.width, self.beamdef.height)
 
 
-        #self.setOffset()
         self.setAttributes()
         self.setOrientation()
         self.setRotations()
@@ -242,7 +241,7 @@ class Beam():
 
         # set specific Attributes for WFrame
         WFrameAttributes.insertAttr(self.structure)
-        self.structure.Name = self.beamdef.name
+        self.structure.WFName = self.beamdef.name
         self.structure.Type = self.beamdef.type
 
         # set view properties
@@ -256,7 +255,7 @@ class Beam():
 
 
     def setOffset(self,off=Base.Vector(0,0,0)):
-
+        #function used by setoffsetnumpad
         orig=self.points[0]
         orig=FreeCAD.DraftWorkingPlane.getLocalCoords(orig)
         vector=FreeCAD.Vector(orig[0]-off[0],orig[1]-off[1],orig[2]-off[2])

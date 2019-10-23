@@ -1,18 +1,18 @@
 <?xml version='1.0' encoding='utf-8'?>
 <attributes>
-  <Name name="" />
-    <Name name="Chevron">
+  <WFName name="" />
+    <WFName name="Chevron">
       <WoodClass>C18</WoodClass>
         <Color>(0,255,0)</Color>
         <Type>Beam</Type>
-  </Name>
-  <Name name="Panne" />
-  <Name name="Poinçon" />
-    <Name name="OSB">
+  </WFName>
+  <WFName name="Panne" />
+  <WFName name="Poinçon" />
+    <WFName name="OSB">
       <WoodClass>OSB3</WoodClass>
         <Color>(0,0,255)</Color>
         <Type>Beam</Type>
-  </Name>
+  </WFName>
   <WoodClass name="C18" />
   <WoodClass name="C24" />
   <WoodClass name="GL24H" />
@@ -39,6 +39,6 @@
   <User2 name="" />
   <User3 name="" />
   <User4 name="" />
-  <Name name="Mur" />
+  <WFName name="Mur" />
 </attributes>
 

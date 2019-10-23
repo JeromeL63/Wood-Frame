@@ -117,7 +117,7 @@ except AttributeError:
 
 
 '''Strings used to determine Attributes'''
-txt_name = "Name"
+txt_name = "WFName"
 txt_type = "Type"
 txt_wclass = "WoodClass"
 txt_group = "Group"
@@ -239,7 +239,7 @@ class Ui_AttrEdit:
         # now retreive properties of selected objects
         for obj in self.objList:
             # test if the object have WFrame attributes
-            if not 'Name' in obj.PropertiesList:
+            if not 'WFName' in obj.PropertiesList:
                 # if not insert them
                 insertAttr(obj)
 
@@ -314,7 +314,7 @@ class Ui_AttrEdit:
                 ###Note: I think there's an easyest way to do that in python like obj.list={}
                 # if property string equal *** do nothing
                 if i == txt_name and not self.form.cb_Name.currentText() == multiNames:
-                    obj.Name = self.form.cb_Name.currentText()
+                    obj.WFName = self.form.cb_Name.currentText()
                 elif i == txt_type and not self.form.cb_Type.currentText() == multiNames:
                     obj.Type = self.form.cb_Type.currentText()
                 elif i == txt_wclass and not self.form.cb_WoodClass.currentText() == multiNames:
@@ -435,7 +435,7 @@ class Ui_AttrSelect:
                 n = self.form.cb_AttrList.currentText()
 
                 if n == txt_name :
-                    lst.append(obj.Name)
+                    lst.append(obj.WFName)
                 elif n == txt_type:
                     lst.append(obj.Type)
                 elif n == txt_wclass:
@@ -468,7 +468,7 @@ class Ui_AttrSelect:
                     val = self.form.cb_Values.currentText()
 
 
-                    if attr == txt_name and obj.Name ==  val : add = True
+                    if attr == txt_name and obj.WFName ==  val : add = True
                     elif attr == txt_type and obj.Type ==  val : add = True
                     elif attr == txt_group and obj.Group == val: add = True
                     elif attr == txt_sgroup and obj.SubGroup == val: add = True
