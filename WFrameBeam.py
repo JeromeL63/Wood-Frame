@@ -22,7 +22,7 @@
 #***************************************************************************
 
 
-import FreeCAD, Arch, Draft,ArchComponent, DraftVecUtils,ArchCommands, ArchStructure,math,FreeCADGui
+import FreeCAD, Arch, Draft,ArchComponent, DraftVecUtils,ArchCommands, ArchStructure,math,FreeCADGui,WorkingPlane
 from FreeCAD import Base, Vector,Rotation
 from math import *
 
@@ -295,28 +295,28 @@ class Beam():
         '''set Angle on the current workingplane'''
 
         # get normal of current workplane
-        self.normal = FreeCAD.DraftWorkingPlane.getNormal()
+        self.normal=FreeCAD.DraftWorkingPlane.getNormal()
+        self.plane = WorkingPlane.plane()
 
-        # get angle in radians between two points with the given normal plan
-        self.localPoints = []
-        self.localPoints.append(FreeCAD.DraftWorkingPlane.getLocalCoords(self.points[0]))
-        self.localPoints.append(FreeCAD.DraftWorkingPlane.getLocalCoords(self.points[1]))
         self.vecAngle = FreeCAD.Vector(0, 0, 0)
-        # relative vector angle
-        self.vecAngle[0] = self.localPoints[1][0] - self.localPoints[0][0]
-        self.vecAngle[1] = self.localPoints[1][1] - self.localPoints[0][1]
-        self.vecAngle[2] = self.localPoints[1][2] - self.localPoints[0][2]
-        # along workingplane normal
 
-        self.angle = DraftVecUtils.angle(self.vecAngle, normal=self.normal)
+        self.vecAngle[0] = self.points[1][0] - self.points[0][0]
+        self.vecAngle[1] = self.points[1][1] - self.points[0][1]
+        self.vecAngle[2] = self.points[1][2] - self.points[0][2]
+
+        # along workingplane normal
+        self.angle= DraftVecUtils.angle(self.wplan.u,self.vecAngle,self.wplan.axis)
+        #self.angle = DraftVecUtils.angle(self.vecAngle, normal=self.normal)
 
         ####WARNING
         # angles 90 and -90 are inverted on Draft on XY plan
-        if self.normal == FreeCAD.Vector(0.0, 0.0, 1.0):
-            self.normal = FreeCAD.Vector(0, 0, -1)
+        #if self.normal == FreeCAD.Vector(0.0, 0.0, 1.0):
+        #    self.normal = FreeCAD.Vector(0, 0, -1)
 
         self.angle = degrees(self.angle)
-        Draft.rotate(self.structure, self.angle, center=self.points[0], axis=self.normal, copy=False)
+        Draft.rotate(self.structure, self.angle, center=self.points[0], axis=self.wplan.getNormal(), copy=False)
+
+        #Draft.rotate(self.structure, self.angle, center=self.points[0], axis=self.normal, copy=False)
 
         FreeCAD.ActiveDocument.recompute()
 
