@@ -347,11 +347,14 @@ class BeamVector():
         FreeCADGui.Snapper.getPoint(last=point,callback=self.getPoint2,movecallback=self.update,title="Select the end of the beam")
     def getPoint2(self,point,obj=None):
         self.points.append(point)
-        #b=BeamShadow(self.points,self.beam)
-        #b.createShadow()
-        b2=Beam(self.beam)
-        b2.create(startPoint=self.points[0], endPoint=self.points[1], isShadow=True)
-        BeamOffsetNumPad(b2)
+        print(self.points)
+        self.points[0]=FreeCAD.DraftWorkingPlane.projectPoint(self.points[0])
+        self.points[1] = FreeCAD.DraftWorkingPlane.projectPoint(self.points[1])
+        print(self.points)
+
+        b=Beam(self.beam)
+        b.create(startPoint=self.points[0], endPoint=self.points[1], isShadow=True)
+        BeamOffsetNumPad(b)
         #BeamOffset(b2)
 
     def update(self,point,info):
