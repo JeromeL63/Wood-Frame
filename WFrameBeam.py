@@ -293,21 +293,15 @@ class Beam():
     def setRotations(self):
         '''set Angle on the current workingplane'''
 
-        # get normal of current workplane
-        self.normal=FreeCAD.DraftWorkingPlane.getNormal()
-        self.plane = WorkingPlane.plane()
-
         self.vecAngle = FreeCAD.Vector(0, 0, 0)
-
         self.vecAngle[0] = self.points[1][0] - self.points[0][0]
         self.vecAngle[1] = self.points[1][1] - self.points[0][1]
         self.vecAngle[2] = self.points[1][2] - self.points[0][2]
 
         # along workingplane normal
         self.angle= DraftVecUtils.angle(self.wplan.u,self.vecAngle,self.wplan.axis)
-
-
         self.angle = degrees(self.angle)
+
         #rotate in the current working plane
         Draft.rotate(self.structure, self.angle, center=self.points[0], axis=self.wplan.getNormal(), copy=False)
         FreeCAD.ActiveDocument.recompute()
@@ -342,6 +336,7 @@ class BeamVector():
         print(self.points)
         self.points[0]=FreeCAD.DraftWorkingPlane.projectPoint(self.points[0])
         self.points[1] = FreeCAD.DraftWorkingPlane.projectPoint(self.points[1])
+
         print(self.points)
 
         b=Beam(self.beam)

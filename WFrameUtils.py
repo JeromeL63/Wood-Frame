@@ -86,7 +86,7 @@ class WFCopy():
 FreeCADGui.addCommand('WFCopy', WFCopy())
 
 
-def copySelection(basePoint=FreeCAD.Vector(0, 0, 0), endPoint=FreeCAD.Vector(0, 0, 0), objlist=None, number=3):
+def copySelection(basePoint=FreeCAD.Vector(0, 0, 0), endPoint=FreeCAD.Vector(0, 0, 0), objlist=None, number=1):
     '''
     Function to copy objects
 
