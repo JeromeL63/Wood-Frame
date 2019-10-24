@@ -64,6 +64,8 @@ Column 1 | Column 2 | Column 3
 4:above plan beam axis  | 5:axis plan beam axis | 6:behind plan beam axis
 1:above plan right corner | 2:axis plan right corner | 3: behind plan right corner
 
+At this this time you have to press enter or double click in 3dView, or Escape to skip this function. 
+
 
 # License
 GNU General Public License V3.0
