@@ -50,21 +50,21 @@ git fetch
 </details>
 
 # Note
-Numpad shortcuts are modified to:  
+Numpad viewstyle shortcuts are modified to:  
 CTRL + 1  
 CTRL + 2  
 ....  
 
 ### Beam positioning from origin beam point
 
-### Numpad positioning is disabled at the moment
-Snapper is used instead
 
 Column 1 | Column 2 | Column 3 
 --------------------------|--------------------------|---------------------------
 7:above plan left corner | 8:axis  plan left corner | 9:behind plan left corner
 4:above plan beam axis  | 5:axis plan beam axis | 6:behind plan beam axis
 1:above plan right corner | 2:axis plan right corner | 3: behind plan right corner
+
+At this this time you have to press enter or double click in 3dView, or Escape to skip this function. 
 
 
 # License
