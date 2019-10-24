@@ -50,15 +50,13 @@ git fetch
 </details>
 
 # Note
-Numpad shortcuts are modified to:  
+Numpad viewstyle shortcuts are modified to:  
 CTRL + 1  
 CTRL + 2  
 ....  
 
 ### Beam positioning from origin beam point
 
-### Numpad positioning is disabled at the moment
-Snapper is used instead
 
 Column 1 | Column 2 | Column 3 
 --------------------------|--------------------------|---------------------------
