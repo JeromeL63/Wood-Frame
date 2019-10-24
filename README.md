@@ -7,11 +7,14 @@ It uses the FreeCAD Draft and Arch workbenches.
 [Timber-Workbench]: https://github.com/j-wiedemann/FreeCAD-Timber/
 
 ### Usage
+- Create beams with advanced positionning
+- Attributes, used to select and filter easly objects(name, groups, sub-group, material, type ....)
+- Select and show by attributes
+- Listing for invoices and production list 
 
 
 ### Prerequisites
 - [x] FreeCAD >= v0.19
-- [ ] 
 
 ### Installation
 
