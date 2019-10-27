@@ -415,6 +415,7 @@ def indent(elem, level=0):
 
 class Ui_AttrSelect:
     def __init__(self):
+        self.magicWord="WFName"
         self.form = FreeCADGui.PySideUic.loadUi(attrSelectUI)
         self.form.cb_AttrList.addItems(getAttrlist())
         self.form.cb_AttrList.setCurrentIndex(-1)
@@ -431,7 +432,7 @@ class Ui_AttrSelect:
         for obj in FreeCAD.ActiveDocument.Objects:
 
             # test if the object have WFrame attributes
-            if 'Name' in obj.PropertiesList:
+            if self.magicWord in obj.PropertiesList:
                 n = self.form.cb_AttrList.currentText()
 
                 if n == txt_name :
@@ -451,7 +452,7 @@ class Ui_AttrSelect:
         lst =list(set(lst))
         self.clearingValues=True
         self.form.cb_Values.clear()
-        print(lst,getAttrlist())
+        #print(lst,getAttrlist())
         self.form.cb_Values.addItems(lst)
         self.clearingValues=False
 
@@ -463,7 +464,7 @@ class Ui_AttrSelect:
             for obj in FreeCAD.ActiveDocument.Objects:
                 add=False
 
-                if 'Name' in obj.PropertiesList:
+                if self.magicWord in obj.PropertiesList:
                     attr = self.form.cb_AttrList.currentText()
                     val = self.form.cb_Values.currentText()
 
