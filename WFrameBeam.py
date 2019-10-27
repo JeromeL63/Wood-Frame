@@ -32,7 +32,8 @@ import WFrameAttributes
 
 if FreeCAD.GuiUp:
     import FreeCADGui
-    from DraftTools import translate
+    import DraftTools
+    from DraftTools import translate,Line
 else:
     def translate(ctxt,txt):
         return txt
@@ -46,12 +47,19 @@ __url__ = "http://www.freecadweb.org"
 
 addBeamUI = __dir__ + "/Resources/Ui/AddBeam.ui"
 
-
-
 from PySide import QtGui,QtCore
+from pivy import coin
+
 
 class WFrameBeam():
     """WFrameBeam"""
+
+    def __init__(self):
+        self.view = None
+        self.units = None
+        self.points = []
+
+
 
     def GetResources(self):
         return {'Pixmap'  :  __dir__ + '/Resources/icons/WFrameBeam.svg',
@@ -60,31 +68,83 @@ class WFrameBeam():
                 'ToolTip' : "Create an advanced beam with better positionning method"}
 
     def Activated(self):
+        self.view = FreeCADGui.ActiveDocument.ActiveView
+        self.units = FreeCAD.Units.Quantity(1.0, FreeCAD.Units.Length)
 
-        print(FreeCADGui.ActiveDocument.Document.FileName)
-        panel = Ui_Definition()
+        FreeCADGui.Snapper.show()
+
+        panel=Ui_Definition()
         FreeCADGui.Control.showDialog(panel)
-
         return
 
-    def IsActive(self):        
-        """Here you can define if the command must be active or not (greyed) if certain conditions
-        are met or not. This function is optional."""
+    def IsActive(self):
         if FreeCADGui.ActiveDocument:
 
             return True
         else:
             return False
 
+    def beamVector(self):
+        self.tracker = DraftTrackers.lineTracker()
+        self.tracker.on()
+        #FreeCADGui.Snapper.getPoint(callback=self.point1,extradlg=self.definition, title="Select the origin of the beam")
+        FreeCADGui.Snapper.show()
+        #self.pt=FreeCADGui.Snapper.snap(FreeCAD.Vector(0,0,0))
+        print(self.pt)
+
+
+    def point1(self,point,obj=None):
+        if point == None:
+            self.tracker.finalize()
+            return
+        self.points.append(point)
+        # ask for a second point
+        FreeCADGui.Snapper.getPoint(last=point, callback=self.point2,movecallback=self.update, title="Select the end of the beam")
+
+    def point2(self,point,obj=None):
+        self.points.append(point)
+        self.points[0] = FreeCAD.DraftWorkingPlane.projectPoint(self.points[0])
+        self.points[1] = FreeCAD.DraftWorkingPlane.projectPoint(self.points[1])
+
+        self.tracker.finalize()
+        self.definition()
+
+    def accept(self):
+        print("accepté")
+
+    def update(self,point,info):
+        dep = point
+
+    def definition(self):
+        print("definition")
+        w=QtGui.QWidget()
+        ui=FreeCADGui.UiLoader()
+        w.setWindowTitle("blabla")
+        grid = QtGui.QGridLayout(w)
+        FreeCADGui.Control.showDialog(w)
+        return w
+
+
+
+
+
 FreeCADGui.addCommand('WFrameBeam',WFrameBeam())
+
 
 class Ui_Definition:
     def __init__(self):
-        self.beam = BeamDef()
-        self.isLength=False
-
         self.form = FreeCADGui.PySideUic.loadUi(addBeamUI)
-        self.form.cb_Orientation.addItems(self.beam.getOrientationTypes())
+        self.beam = Beam(BeamDef())
+        self.beamdef = self.beam.beamdef
+
+        self.points=[]
+        self.pt=None
+        self.lastpoint=None
+        self.isLength=False
+        self.h=220
+        self.w=100
+
+        self.form.cb_Orientation.addItems(self.beamdef.getOrientationTypes())
         self.form.cb_Name.addItems(WFrameAttributes.getNames())
         self.form.led_Length.setVisible(False)
         self.form.lbl_Length.setVisible(False)
@@ -102,9 +162,64 @@ class Ui_Definition:
         self.form.led_Width.setValidator(validator)
 
         #connections
-        self.form.cb_Orientation.currentIndexChanged.connect(self.showLength)
+        self.form.cb_Orientation.currentIndexChanged.connect(self.sectionChanged)
+        self.form.cb_Name.currentIndexChanged.connect(self.redraw)
+        self.form.led_Width.textChanged.connect(self.sectionChanged)
+        self.form.led_Height.textChanged.connect(self.sectionChanged)
+        self.form.led_Length.textChanged.connect(self.redraw)
+        self.form.rb_1.clicked.connect(self.offset)
+        self.form.rb_2.clicked.connect(self.offset)
+        self.form.rb_3.clicked.connect(self.offset)
+        self.form.rb_4.clicked.connect(self.offset)
+        self.form.rb_5.clicked.connect(self.offset)
+        self.form.rb_6.clicked.connect(self.offset)
+        self.form.rb_7.clicked.connect(self.offset)
+        self.form.rb_8.clicked.connect(self.offset)
+        self.form.rb_9.clicked.connect(self.offset)
+        #self.form.ok.clicked.connect(self.accept)
+        #self.form.cancel.clicked.connect(self.reject)
 
-    def showLength(self):
+
+        #reimplement getPoint from draft, without Dialog taskbox
+        self.curview=FreeCADGui.activeDocument().activeView()
+        self.callbackClick = self.curview.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.mouseClick)
+        self.callbackMove = self.curview.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.mouseMove)
+
+    #retreive point clicked with snap
+    def mouseClick(self,event_cb):
+        event = event_cb.getEvent()
+        if event.getButton() == 1:
+            if event.getState() == coin.SoMouseButtonEvent.DOWN:
+                #start point
+                if len(self.points) == 0 :
+                    self.points.append(self.pt)
+                    self.lastpoint=self.pt
+                #end point
+                elif len(self.points) == 1:
+                    if self.callbackClick:
+                        self.curview.removeEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(),self.callbackClick)
+                    if self.callbackMove:
+                        self.curview.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.callbackMove)
+                    self.callbackClick = None
+                    self.callbackMove = None
+                    self.points.append(self.pt)
+                    print("len =1",self.points)
+                    FreeCADGui.Snapper.off()
+                    self.redraw()
+
+    #mouse move to show sanp points
+    def mouseMove(self,event_cb):
+        event=event_cb.getEvent()
+        mousepos=event.getPosition()
+        self.pt = FreeCADGui.Snapper.snap(mousepos, lastpoint=self.lastpoint)
+        if hasattr(FreeCAD, "DraftWorkingPlane"):
+            FreeCADGui.draftToolBar.displayPoint(self.pt, None, plane=FreeCAD.DraftWorkingPlane,mask=FreeCADGui.Snapper.affinity)
+
+
+    def sectionChanged(self):
+        self.h = float(self.beamdef.height)
+        self.w = float(self.beamdef.width)
+
         #if cut view
         print("showLength",self.form.cb_Orientation.currentIndex())
         if self.form.cb_Orientation.currentIndex() == 2:
@@ -114,21 +229,130 @@ class Ui_Definition:
             self.isLength=True
 
         else:
+            if self.form.cb_Orientation.currentIndex() == 1:
+                self.w = float(self.beamdef.height)
+                self.h = float(self.beamdef.width)
+
             self.form.led_Length.setVisible(False)
             self.form.lbl_Length.setVisible(False)
             self.beam.length = ""
             self.isLength=False
+        self.form.rb_5.setChecked(True)
+        self.redraw()
+
 
     def accept(self):
-        self.beam.orientation=self.form.cb_Orientation.currentText()
-        self.beam.name=self.form.cb_Name.currentText()
-        self.beam.width=self.form.led_Width.text()
-        self.beam.height=self.form.led_Height.text()
-        if self.isLength:
-            self.beam.length=self.form.led_Length.text()
+        self.beam.shadowToObject()
+        self.close()
 
+    def reject(self):
+        if self.beam:
+            self.beam.delete()
+        self.close()
+
+    def close(self):
+        if self.callbackClick:
+            self.curview.removeEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.callbackClick)
+        if self.callbackMove:
+            self.curview.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.callbackMove)
+        self.callbackClick = None
+        self.callbackMove = None
         FreeCADGui.Control.closeDialog()
-        BeamVector(self.beam)
+
+
+    def offset(self):
+        #TODO dashed and dashdot line style doesn't work properly
+
+        if self.form.rb_1.isChecked():
+            if self.form.cb_Orientation.currentIndex() == 2:
+                self.beam.setOffset(Base.Vector(-self.w / 2, -self.h / 2, 0))
+            else:
+                self.beam.setOffset(Base.Vector(0, -self.h / 2, -self.w / 2))
+            self.beam.setSolid()
+
+        elif self.form.rb_2.isChecked():
+            if self.form.cb_Orientation.currentIndex() == 2:
+                self.beam.setOffset(Base.Vector(0, -self.h / 2, 0))
+                self.beam.setSolid()
+            else:
+                self.beam.setOffset(Base.Vector(0, -self.h / 2, 0))
+                #self.beam.setDashDot()
+
+        elif self.form.rb_3.isChecked():
+            if self.form.cb_Orientation.currentIndex() == 2:
+                self.beam.setOffset(Base.Vector(self.w / 2, -self.h / 2, 0))
+                self.beam.setSolid()
+            else:
+                self.beam.setOffset(Base.Vector(0, -self.h / 2, self.w / 2))
+                #self.beam.setDashed()
+
+        elif self.form.rb_4.isChecked():
+            if self.form.cb_Orientation.currentIndex() == 2:
+                self.beam.setOffset(Base.Vector(-self.w / 2, 0, 0))
+                self.beam.setSolid()
+            else:
+                self.beam.setOffset(Base.Vector(0, 0, -self.w / 2))
+                self.beam.setSolid()
+
+        elif self.form.rb_5.isChecked():
+            if self.form.cb_Orientation.currentIndex() == 2:
+                self.beam.setOffset(Base.Vector(0, 0, 0))
+                self.beam.setSolid()
+            else:
+                self.beam.setOffset(Base.Vector(0, 0, 0))
+                #self.beam.setDashDot()
+
+        elif self.form.rb_6.isChecked():
+            if self.form.cb_Orientation.currentIndex() == 2:
+                self.beam.setOffset(Base.Vector(self.w / 2, 0, 0))
+                self.beam.setSolid()
+            else:
+                self.beam.setOffset(Base.Vector(0, 0, self.w / 2))
+                #self.beam.setDashed()
+
+        elif self.form.rb_7.isChecked():
+            if self.form.cb_Orientation.currentIndex() == 2:
+                self.beam.setOffset(Base.Vector(-self.w / 2, self.h / 2, 0))
+                self.beam.setSolid()
+            else:
+                self.beam.setOffset(Base.Vector(0, self.h / 2, -self.w / 2))
+                self.beam.setSolid()
+
+        elif self.form.rb_8.isChecked():
+            if self.form.cb_Orientation.currentIndex() == 2:
+                self.beam.setOffset(Base.Vector(0, self.h / 2, 0))
+                self.beam.setSolid()
+            else:
+                self.beam.setOffset(Base.Vector(0, self.h / 2, 0))
+                #self.beam.setDashDot()
+
+        elif self.form.rb_9.isChecked():
+            if self.form.cb_Orientation.currentIndex() == 2:
+                self.beam.setOffset(Base.Vector(self.w / 2, self.h / 2, 0))
+            else:
+                self.beam.setOffset(Base.Vector(0, self.h / 2, self.w / 2))
+                #self.beam.setDashed()
+        FreeCADGui.Selection.clearSelection()
+
+    def redraw(self):
+        print("redraw")
+
+        if len(self.points) == 2 :
+            self.beamdef.orientation = self.form.cb_Orientation.currentText()
+            self.beamdef.name = self.form.cb_Name.currentText()
+            self.beamdef.width = self.form.led_Width.text()
+            self.beamdef.height = self.form.led_Height.text()
+            if self.isLength:
+                self.beamdef.length = self.form.led_Length.text()
+            self.beam.delete()
+            self.beam.beamdef=self.beamdef
+            self.beam.create(startPoint=self.points[0], endPoint=self.points[1], isShadow=True)
+
+            self.offset()
+
+
+
+
 
 
 class BeamDef:
@@ -182,9 +406,6 @@ class BeamDef:
 
 
 
-
-
-
 class Beam():
     def __init__(self,beamdef):
         print("##Beam##\r\n")
@@ -192,6 +413,10 @@ class Beam():
         self.angle = 0
         self.evalrot = self.beamdef.getOrientationTypes()
         self.structure = None
+    def delete(self):
+        if self.structure:
+            self.structure.Document.removeObject(self.structure.Name)
+            self.structure=None
 
 
     def create(self,structure=None,startPoint=Base.Vector(0,0,0),endPoint=Base.Vector(0,0,0),isShadow=False):
@@ -217,8 +442,9 @@ class Beam():
 
 
     def shadowToObject(self):
-        self.structure.ViewObject.Transparency = 0
-        self.structure.ViewObject.DrawStyle = "Solid"
+        if self.structure:
+            self.structure.ViewObject.Transparency = 0
+            self.structure.ViewObject.DrawStyle = "Solid"
 
     def objectToShadow(self):
         self.structure.ViewObject.Transparency = 85
@@ -309,8 +535,9 @@ class Beam():
 
 class BeamVector():
     """this class retreive 2 points selected by user"""
-    def __init__(self,beam):
-        self.beam=beam
+    def __init__(self):
+
+
         self.doc=FreeCAD.ActiveDocument
         if self.doc == None:
             FreeCAD.newDocument("Sans_Nom")
@@ -319,33 +546,49 @@ class BeamVector():
         self.units=FreeCAD.Units.Quantity(1.0,FreeCAD.Units.Length)
         self.points = []
 
+    def start(self):
 #snapper starting
         self.tracker = DraftTrackers.lineTracker()
         self.tracker.on()
         FreeCADGui.Snapper.getPoint(callback=self.getPoint1,title="Select the origin of the beam")
+
     def getPoint1(self,point,obj=None):
 #retreive snapped point
         if point == None:
             self.tracker.finalize()
             return        
-        self.points.append(point)        
-#ask for a second point        
-        FreeCADGui.Snapper.getPoint(last=point,callback=self.getPoint2,movecallback=self.update,title="Select the end of the beam")
+        self.points.append(point)
+
+
+#ask for a second point
+        self.pt=FreeCADGui.Snapper.getPoint(last=point, callback=self.getPoint2,extradlg=Ui_Definition, movecallback=self.update, title="Select the end of the beam")
+
+
     def getPoint2(self,point,obj=None):
         self.points.append(point)
-        print(self.points)
         self.points[0]=FreeCAD.DraftWorkingPlane.projectPoint(self.points[0])
         self.points[1] = FreeCAD.DraftWorkingPlane.projectPoint(self.points[1])
 
         print(self.points)
 
-        b=Beam(self.beam)
-        b.create(startPoint=self.points[0], endPoint=self.points[1], isShadow=True)
-        BeamOffsetNumPad(b)
-        #BeamOffset(b2)
+        self.tracker.finalize()
+        self.launchUI()
 
     def update(self,point,info):
         dep = point
+
+    def launchUI(self):
+        start(self.points)
+
+
+
+class start():
+    def __init__(self,points):
+        panel = Ui_Definition(points)
+        FreeCADGui.Control.showDialog(panel)
+
+
+
 
 
 class BeamOffsetNumPad():
@@ -366,9 +609,12 @@ class BeamOffsetNumPad():
         # try to retreive keyboard numpad to place beam with points
         self.curview= Draft.get3DView()
         print("##BeamTracker##: please use numpad or double click/press enter to terminate")
-        self.call= self.curview.addEventCallback("SoEvent",self.action)
+        #self.call= self.curview.addEventCallback("SoEvent",self.action)
         self.status="PAD_5"
         self.opoint=FreeCAD.Vector(0,0,0)
+
+
+
 
 ####ACTION
 
