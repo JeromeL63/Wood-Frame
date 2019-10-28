@@ -211,7 +211,9 @@ class Ui_Definition:
     def mouseMove(self,event_cb):
         event=event_cb.getEvent()
         mousepos=event.getPosition()
-        self.pt = FreeCADGui.Snapper.snap(mousepos, lastpoint=self.lastpoint)
+        ctrl=event.wasCtrlDown()
+        shift=event.wasShiftDown()
+        self.pt = FreeCADGui.Snapper.snap(mousepos, lastpoint=self.lastpoint,active=ctrl,constrain=shift)
         if hasattr(FreeCAD, "DraftWorkingPlane"):
             FreeCADGui.draftToolBar.displayPoint(self.pt, None, plane=FreeCAD.DraftWorkingPlane,mask=FreeCADGui.Snapper.affinity)
 
