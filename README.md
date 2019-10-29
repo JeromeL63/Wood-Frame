@@ -19,7 +19,7 @@ It uses the FreeCAD Draft and Arch workbenches.
 
 ![WFramePanel](Resources/icons/WFramePanel.svg)  Add a panel
 
-![WFAttrEdit](Resources/icons/WFSelectAttr.svg)   edit attributes 
+![WFAttrEdit](Resources/icons/WFEditAttr.svg)   edit attributes 
 
 ![WFSelectAttr](Resources/icons/WFSelectAttr.svg)  Select/hide by attributes 
 
