@@ -13,6 +13,26 @@ It uses the FreeCAD Draft and Arch workbenches.
 - Select and show by attributes
 - Listing for invoices and production list
 
+## Toolbar
+
+![WFrameBeam](Resources/icons/WFrameBeam.svg)  This tool is used for...
+
+![WFrame_Beam_Tree](Resources/icons/WFrame_Beam_Tree.svg)  
+
+![WFrame_Repartition](Resources/icons/WFrame_Repartition.svg)  
+
+![WFSelectAttr](Resources/icons/WFSelectAttr.svg)  
+
+![WFrameLib](Resources/icons/WFrameLib.svg)  
+
+![WFrame_Listing](Resources/icons/WFrame_Listing.svg)  
+
+![WFCopy](Resources/icons/WFCopy.svg)  
+
+![AlignViewWPlane](Resources/icons/AlignViewWPlane.svg)  
+
+![WFramePanel](Resources/icons/WFramePanel.svg)  
+
 
 ### Prerequisites
 - [x] FreeCAD >= v0.19
