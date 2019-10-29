@@ -225,7 +225,7 @@ static char *ferme[] = {
         
         
         self.wframe = ["WFrameAlignViewWPlane",
-                       "WFrameBeam","Arch_CutPlane",
+                       "WFrameBeam","WFramePanel","Arch_CutPlane",
                        "WFCopy",
                        "WFrameList",
                        "WFEditAttributes",
