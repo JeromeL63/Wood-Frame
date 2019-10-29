@@ -6,12 +6,12 @@ It uses the FreeCAD Draft and Arch workbenches.
 
 [Timber-Workbench]: https://github.com/j-wiedemann/FreeCAD-Timber/
 
-### Usage
-- Create beams with advanced positionning
-- Create panels with advanced positionning 
-- Attributes, used to select and filter easly objects(name, groups, sub-group, material, type ....)
+## Usage
+- Create beams with advanced positioning
+- Create panels with advanced positioning
+- Attributes, used to select and filter objects (name, groups, sub-group, material, type ....) easily
 - Select and show by attributes
-- Listing for invoices and production list 
+- Listing for invoices and production list
 
 
 ### Prerequisites
@@ -53,7 +53,7 @@ git fetch
 **Note:** Make sure to restart FreeCAD after you install or update the Wood Workbench.
 </details>
 
-# Note
+## Notes
 Numpad viewstyle shortcuts are modified to:  
 CTRL + 1  
 CTRL + 2  
