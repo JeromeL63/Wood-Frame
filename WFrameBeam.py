@@ -70,9 +70,10 @@ class WFrameBeam():
     def Activated(self):
         self.view = FreeCADGui.ActiveDocument.ActiveView
         self.units = FreeCAD.Units.Quantity(1.0, FreeCAD.Units.Length)
-
+        ###TODO Prepare File
+        # 1 : create Timber group
+        # 2 : Create Layers
         FreeCADGui.Snapper.show()
-
         panel=Ui_Definition()
         FreeCADGui.Control.showDialog(panel)
         return
@@ -83,49 +84,6 @@ class WFrameBeam():
             return True
         else:
             return False
-
-    def beamVector(self):
-        self.tracker = DraftTrackers.lineTracker()
-        self.tracker.on()
-        #FreeCADGui.Snapper.getPoint(callback=self.point1,extradlg=self.definition, title="Select the origin of the beam")
-        FreeCADGui.Snapper.show()
-        #self.pt=FreeCADGui.Snapper.snap(FreeCAD.Vector(0,0,0))
-        print(self.pt)
-
-
-    def point1(self,point,obj=None):
-        if point == None:
-            self.tracker.finalize()
-            return
-        self.points.append(point)
-        # ask for a second point
-        FreeCADGui.Snapper.getPoint(last=point, callback=self.point2,movecallback=self.update, title="Select the end of the beam")
-
-    def point2(self,point,obj=None):
-        self.points.append(point)
-        self.points[0] = FreeCAD.DraftWorkingPlane.projectPoint(self.points[0])
-        self.points[1] = FreeCAD.DraftWorkingPlane.projectPoint(self.points[1])
-
-        self.tracker.finalize()
-        self.definition()
-
-    def accept(self):
-        print("accepté")
-
-    def update(self,point,info):
-        dep = point
-
-    def definition(self):
-        print("definition")
-        w=QtGui.QWidget()
-        ui=FreeCADGui.UiLoader()
-        w.setWindowTitle("blabla")
-        grid = QtGui.QGridLayout(w)
-        FreeCADGui.Control.showDialog(w)
-        return w
-
-
-
 
 
 FreeCADGui.addCommand('WFrameBeam',WFrameBeam())
@@ -181,9 +139,45 @@ class Ui_Definition:
 
 
         #reimplement getPoint from draft, without Dialog taskbox
+
+        #start events
         self.curview=FreeCADGui.activeDocument().activeView()
         self.callbackClick = self.curview.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.mouseClick)
         self.callbackMove = self.curview.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.mouseMove)
+        self.callbackKeys =None
+        self.enterkeyCode= 65293
+        self.returnKeyCode=65421
+
+
+    def closeEvents(self):
+        #remove all events
+        if self.callbackClick:
+            self.curview.removeEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.callbackClick)
+        if self.callbackMove:
+            self.curview.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.callbackMove)
+        if self.callbackKeys:
+            self.curview.removeEventCallbackPivy(coin.SoKeyboardEvent.getClassTypeId(), self.callbackKeys)
+
+        self.callbackClick = None
+        self.callbackMove = None
+
+    def keys(self,event_cb):
+        event=event_cb.getEvent()
+        if event.getState() == coin.SoKeyboardEvent.DOWN:
+            if (event.getKey() == self.returnKeyCode) or (event.getKey() == self.enterkeyCode):
+                self.accept()
+                return
+
+            if event.getPrintableCharacter() == "1": self.form.rb_1.setChecked(True)
+            if event.getPrintableCharacter() == "2": self.form.rb_2.setChecked(True)
+            if event.getPrintableCharacter() == "3": self.form.rb_3.setChecked(True)
+            if event.getPrintableCharacter() == "4": self.form.rb_4.setChecked(True)
+            if event.getPrintableCharacter() == "5": self.form.rb_5.setChecked(True)
+            if event.getPrintableCharacter() == "6": self.form.rb_6.setChecked(True)
+            if event.getPrintableCharacter() == "7": self.form.rb_7.setChecked(True)
+            if event.getPrintableCharacter() == "8": self.form.rb_8.setChecked(True)
+            if event.getPrintableCharacter() == "9": self.form.rb_9.setChecked(True)
+            self.offset()
 
     #retreive point clicked with snap
     def mouseClick(self,event_cb):
@@ -196,16 +190,13 @@ class Ui_Definition:
                     self.lastpoint=self.pt
                 #end point
                 elif len(self.points) == 1:
-                    if self.callbackClick:
-                        self.curview.removeEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(),self.callbackClick)
-                    if self.callbackMove:
-                        self.curview.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.callbackMove)
-                    self.callbackClick = None
-                    self.callbackMove = None
+                    self.closeEvents()
                     self.points.append(self.pt)
-                    print("len =1",self.points)
                     FreeCADGui.Snapper.off()
+                    #start keyboard events
+                    self.callbackKeys = self.curview.addEventCallbackPivy(coin.SoKeyboardEvent.getClassTypeId(),self.keys)
                     self.redraw()
+
 
     #mouse move to show sanp points
     def mouseMove(self,event_cb):
@@ -213,6 +204,7 @@ class Ui_Definition:
         mousepos=event.getPosition()
         ctrl=event.wasCtrlDown()
         shift=event.wasShiftDown()
+
         self.pt = FreeCADGui.Snapper.snap(mousepos, lastpoint=self.lastpoint,active=ctrl,constrain=shift)
         if hasattr(FreeCAD, "DraftWorkingPlane"):
             FreeCADGui.draftToolBar.displayPoint(self.pt, None, plane=FreeCAD.DraftWorkingPlane,mask=FreeCADGui.Snapper.affinity)
@@ -252,14 +244,13 @@ class Ui_Definition:
             self.beam.delete()
         self.close()
 
-    def close(self):
-        if self.callbackClick:
-            self.curview.removeEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.callbackClick)
-        if self.callbackMove:
-            self.curview.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.callbackMove)
-        self.callbackClick = None
-        self.callbackMove = None
+    def close(self,rejected=False):
+        self.closeEvents()
         FreeCADGui.Control.closeDialog()
+        if rejected:
+            if self.beam:
+                self.beam.delete()
+
 
 
     def offset(self):
@@ -337,7 +328,7 @@ class Ui_Definition:
         FreeCADGui.Selection.clearSelection()
 
     def redraw(self):
-        print("redraw")
+        #print("redraw")
 
         if len(self.points) == 2 :
             self.beamdef.orientation = self.form.cb_Orientation.currentText()
@@ -349,7 +340,6 @@ class Ui_Definition:
             self.beam.delete()
             self.beam.beamdef=self.beamdef
             self.beam.create(startPoint=self.points[0], endPoint=self.points[1], isShadow=True)
-
             self.offset()
 
 
@@ -533,208 +523,4 @@ class Beam():
         #rotate in the current working plane
         Draft.rotate(self.structure, self.angle, center=self.points[0], axis=self.wplan.getNormal(), copy=False)
         FreeCAD.ActiveDocument.recompute()
-
-
-class BeamVector():
-    """this class retreive 2 points selected by user"""
-    def __init__(self):
-
-
-        self.doc=FreeCAD.ActiveDocument
-        if self.doc == None:
-            FreeCAD.newDocument("Sans_Nom")
-            
-        self.view = FreeCADGui.ActiveDocument.ActiveView
-        self.units=FreeCAD.Units.Quantity(1.0,FreeCAD.Units.Length)
-        self.points = []
-
-    def start(self):
-#snapper starting
-        self.tracker = DraftTrackers.lineTracker()
-        self.tracker.on()
-        FreeCADGui.Snapper.getPoint(callback=self.getPoint1,title="Select the origin of the beam")
-
-    def getPoint1(self,point,obj=None):
-#retreive snapped point
-        if point == None:
-            self.tracker.finalize()
-            return        
-        self.points.append(point)
-
-
-#ask for a second point
-        self.pt=FreeCADGui.Snapper.getPoint(last=point, callback=self.getPoint2,extradlg=Ui_Definition, movecallback=self.update, title="Select the end of the beam")
-
-
-    def getPoint2(self,point,obj=None):
-        self.points.append(point)
-        self.points[0]=FreeCAD.DraftWorkingPlane.projectPoint(self.points[0])
-        self.points[1] = FreeCAD.DraftWorkingPlane.projectPoint(self.points[1])
-
-        print(self.points)
-
-        self.tracker.finalize()
-        self.launchUI()
-
-    def update(self,point,info):
-        dep = point
-
-    def launchUI(self):
-        start(self.points)
-
-
-
-class start():
-    def __init__(self,points):
-        panel = Ui_Definition(points)
-        FreeCADGui.Control.showDialog(panel)
-
-
-
-
-
-class BeamOffsetNumPad():
-    def __init__(self,beam):
-        print("##BeamTracker## Beam Shadow \r\n")
-        #used to prevent first click
-        self.beam=beam
-        self.clickCount=0
-        self.boundingBoxExist= False
-        #self.beam=beam        
-        self.points = self.beam.points
-        self.angle=0
-        self.evalrot = self.beam.beamdef.getOrientationTypes()
-        self.structure = None
-
-        ###TODO numpad Positionning disabled at the moment
-
-        # try to retreive keyboard numpad to place beam with points
-        self.curview= Draft.get3DView()
-        print("##BeamTracker##: please use numpad or double click/press enter to terminate")
-        #self.call= self.curview.addEventCallback("SoEvent",self.action)
-        self.status="PAD_5"
-        self.opoint=FreeCAD.Vector(0,0,0)
-
-
-
-
-####ACTION
-
-    def action(self, arg):
-
-        h=float(self.beam.beamdef.height)
-        w=float(self.beam.beamdef.width)
-        if self.evalrot[1] in self.beam.beamdef.orientation:
-            w=float(self.beam.beamdef.height)
-            h=float(self.beam.beamdef.width)
-
-
-
-        if (arg["Type"] == "SoMouseButtonEvent") and (arg["Button"] == "BUTTON1") and  (arg["State"] == "UP"):
-            self.clickCount+=1
-            print("##BeamTracker## Mouse BUTTON1 pressed\r\n")
-            if self.clickCount == 2:
-                self.finish()
-            elif self.clickCount >2:
-                self.clickCount=1
-
-
-        elif (arg["Type"] == "SoKeyboardEvent") and (arg["State"] == "UP") :
-
-            if arg["Key"] == "ESCAPE":
-                self.finish()
-            # numpad assignement for beam positionning
-            if arg["Key"] == "PAD_1":
-                if self.evalrot[2] in self.beam.beamdef.orientation:
-                    self.beam.setOffset(Base.Vector(-w / 2, -h / 2, 0))
-                else:
-                    self.beam.setOffset(Base.Vector(0,-h/2, -w/2))
-                self.beam.setSolid()
-
-            if arg["Key"] == "PAD_2":
-                if self.evalrot[2] in self.beam.beamdef.orientation:
-                    self.beam.setOffset(Base.Vector(0,-h/2, 0))
-                    self.beam.setSolid()
-
-                else:
-                    self.beam.setOffset(Base.Vector(0,-h/2, 0))
-                    self.beam.setDashDot()
-
-            if arg["Key"] == "PAD_3":
-                if self.evalrot[2] in self.beam.beamdef.orientation:
-                    self.beam.setOffset(Base.Vector(w/2, -h/2, 0))
-                    self.beam.setSolid()
-
-                else:
-                    self.beam.setOffset(Base.Vector(0,-h/2, w/2))
-                    self.beam.setDashed()
-
-            if arg["Key"] == "PAD_4":
-                if self.evalrot[2] in self.beam.beamdef.orientation:
-                    self.beam.setOffset(Base.Vector(-w / 2, 0, 0))
-                    self.opoint[0]=w/2.0
-                    self.beam.setSolid()
-                else:
-                    self.beam.setOffset(Base.Vector(0, 0, -w / 2))
-                    self.opoint[2]=w/2.0
-                    self.beam.setSolid()
-
-            if arg["Key"] == "PAD_5":
-                if self.evalrot[2] in self.beam.beamdef.orientation:
-                    self.beam.setOffset(Base.Vector(0, 0, 0))
-                    self.beam.setSolid()
-
-                else:
-                    self.beam.setOffset(Base.Vector(0,0,0))
-                    self.beam.setDashDot()
-
-
-            if arg["Key"] == "PAD_6":
-                if self.evalrot[2] in self.beam.beamdef.orientation:
-                    self.beam.setOffset(Base.Vector(w/2, 0, 0))
-                    self.beam.setSolid()
-                else:
-                    self.beam.setOffset(Base.Vector(0, 0, w / 2))
-                    self.beam.setDashed()
-
-            if arg["Key"] == "PAD_7":
-                if self.evalrot[2] in self.beam.beamdef.orientation:
-                    self.beam.setOffset(Base.Vector(-w / 2, h / 2, 0))
-                    self.beam.setSolid()
-                else:
-                    self.beam.setOffset(Base.Vector(0, h / 2, -w / 2))
-                    self.beam.setSolid()
-
-            if arg["Key"] == "PAD_8":
-                if self.evalrot[2] in self.beam.beamdef.orientation:
-                    self.beam.setOffset(Base.Vector(0, h / 2, 0))
-                    self.beam.setSolid()
-                    self.opoint[0]=0.0
-                else:
-                    self.beam.setOffset(Base.Vector(0, h / 2, 0))
-                    self.opoint[2]=0.0
-                    self.beam.setDashDot()
-
-            if arg["Key"] == "PAD_9":
-                if self.evalrot[2] in self.beam.beamdef.orientation:
-                    self.beam.setOffset(Base.Vector(w / 2, h / 2, 0))
-                    self.opoint[0]=-w/2.0
-                else:
-                    self.beam.setOffset(Base.Vector(0, h / 2, w / 2))
-                    self.beam.setDashed()
-
-            if arg["Key"] == "PAD_ENTER" or arg["Key"] == "RETURN":
-
-                self.finish()
-
-    def finish(self,closed=False):
-       if self.call:
-            try:
-                self.curview.removeEventCallback("SoEvent",self.call)
-                self.beam.shadowToObject()
-
-            #except RuntimeError:
-            except :
-                pass
-            self.call=None
 
