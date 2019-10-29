@@ -15,23 +15,21 @@ It uses the FreeCAD Draft and Arch workbenches.
 
 ## Toolbar
 
-![WFrameBeam](Resources/icons/WFrameBeam.svg)  This tool is used for...
+![WFrameBeam](Resources/icons/WFrameBeam.svg)  Add a beam
 
-![WFrame_Beam_Tree](Resources/icons/WFrame_Beam_Tree.svg)  
+![WFramePanel](Resources/icons/WFramePanel.svg)  Add a panel
 
-![WFrame_Repartition](Resources/icons/WFrame_Repartition.svg)  
+![WFAttrEdit](Resources/icons/WFEditAttr.svg)   edit attributes 
 
-![WFSelectAttr](Resources/icons/WFSelectAttr.svg)  
+![WFSelectAttr](Resources/icons/WFSelectAttr.svg)  Select/hide by attributes 
 
-![WFrameLib](Resources/icons/WFrameLib.svg)  
+![WFrame_Listing](Resources/icons/WFrame_Listing.svg)  Generate Listing
 
-![WFrame_Listing](Resources/icons/WFrame_Listing.svg)  
+![WFCopy](Resources/icons/WFCopy.svg)  Copy element
 
-![WFCopy](Resources/icons/WFCopy.svg)  
+![AlignViewWPlane](Resources/icons/AlignViewWPlane.svg)  Align View from current workplane
 
-![AlignViewWPlane](Resources/icons/AlignViewWPlane.svg)  
 
-![WFramePanel](Resources/icons/WFramePanel.svg)  
 
 
 ### Prerequisites
