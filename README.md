@@ -8,6 +8,7 @@ It uses the FreeCAD Draft and Arch workbenches.
 
 ### Usage
 - Create beams with advanced positionning
+- Create panels with advanced positionning 
 - Attributes, used to select and filter easly objects(name, groups, sub-group, material, type ....)
 - Select and show by attributes
 - Listing for invoices and production list 
