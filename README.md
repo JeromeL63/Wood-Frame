@@ -13,23 +13,35 @@ It uses the FreeCAD Draft and Arch workbenches.
 - Select and show by attributes
 - Listing for invoices and production list
 
-## Toolbar
+### Toolbar
 
-![WFBeam](Resources/icons/WF_Beam.svg)  Add a beam
+#### Add a Beam
 
-![WFPanel](Resources/icons/WF_Panel.svg)  Add a panel
+![WFrameBeam](Resources/icons/WFrameBeam.svg) Short explanation on what this function does.
 
-![WFAttrEdit](Resources/icons/WFEditAttr.svg)  edit attributes 
+#### Add a Panel
 
-![WFSelectAttr](Resources/icons/WFSelectAttr.svg)  Select/hide by attributes 
+![WFramePanel](Resources/icons/WFramePanel.svg) Short explanation on what this function does.
 
-![WFrame_Listing](Resources/icons/WFrame_Listing.svg)  Generate Listing
+#### Edit Attributes
 
-![WFCopy](Resources/icons/WFCopy.svg)  Copy element
+![WFAttrEdit](Resources/icons/WFEditAttr.svg) Short explanation on what this function does.
 
-![AlignViewWPlane](Resources/icons/AlignViewWPlane.svg)  Align View from current workplane
+#### Select/Hide by Attributes
 
+![WFSelectAttr](Resources/icons/WFSelectAttr.svg) Short explanation on what this function does.
 
+#### Generate Listing
+
+![WFrame_Listing](Resources/icons/WFrame_Listing.svg) Short explanation on what this function does.
+
+#### Copy element
+
+![WFCopy](Resources/icons/WFCopy.svg) Short explanation on what this function does.
+
+#### Align View from Current Workplane
+
+![AlignViewWPlane](Resources/icons/AlignViewWPlane.svg) Short explanation on what this function does.
 
 
 ### Prerequisites
