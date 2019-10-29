@@ -99,8 +99,8 @@ class Ui_Definition:
         self.pt=None
         self.lastpoint=None
         self.isLength=False
-        self.h=220
-        self.w=100
+        self.h=self.beamdef.height
+        self.w=self.beamdef.width
 
         self.form.cb_Orientation.addItems(self.beamdef.getOrientationTypes())
         self.form.cb_Name.addItems(WFrameAttributes.getNames())
@@ -108,8 +108,8 @@ class Ui_Definition:
         self.form.lbl_Length.setVisible(False)
 
         #init default values
-        self.form.led_Height.setText("220")
-        self.form.led_Width.setText("100")
+        self.form.led_Height.setText(str(self.h))
+        self.form.led_Width.setText(str(self.w))
         self.form.cb_Name.setCurrentIndex(1)
 
         ##Wrong decimal point with french keyboard !
@@ -360,7 +360,7 @@ class BeamDef:
         self.height=145
         self.length=1000
         self.orientation=""
-        self.viewTypes=["face","up","cut"]
+        self.viewTypes=["face","top","cut"]
         #the default view type
         self.view=self.viewTypes[0]
 
