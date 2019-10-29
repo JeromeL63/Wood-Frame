@@ -3,15 +3,21 @@
   <WFName name="" />
     <WFName name="Chevron">
       <WoodClass>C18</WoodClass>
-        <Color>(0,255,0)</Color>
-        <Type>Beam</Type>
+        <Layer>Third</Layer>
+        <Type>Bar</Type>
   </WFName>
-  <WFName name="Panne" />
+
+  <WFName name="Panne">
+        <WoodClass>C18</WoodClass>
+        <Layer>Second</Layer>
+        <Type>Bar</Type>
+  </WFName>
+
   <WFName name="Poinçon" />
     <WFName name="OSB">
       <WoodClass>OSB3</WoodClass>
-        <Color>(0,0,255)</Color>
-        <Type>Beam</Type>
+        <Layer>OSB</Layer>
+        <Type>Panel</Type>
   </WFName>
   <WoodClass name="C18" />
   <WoodClass name="C24" />
@@ -39,6 +45,24 @@
   <User2 name="" />
   <User3 name="" />
   <User4 name="" />
+  <Layer name="Main">
+    <LineColor>(59,226,226)</LineColor>
+    <ShapeColor>(236,203,135)</ShapeColor>
+  </Layer>
+  <Layer name="Second">
+    <LineColor>(48,134,199)</LineColor>
+    <ShapeColor>(236,203,135)</ShapeColor>
+  </Layer>
+  <Layer name="Third">
+    <LineColor>(56,207,45)</LineColor>
+    <ShapeColor>(236,203,135)</ShapeColor>
+  </Layer>
+  <Layer name="OSB">
+    <LineColor>(0,0,0)</LineColor>
+    <ShapeColor>(150,117,89)</ShapeColor>
+  </Layer>
+
+
   <WFName name="Mur" />
 </attributes>
 
