@@ -21,6 +21,8 @@
 # *                                                                         *
 # ***************************************************************************
 
+###TODO implement user1 2 3 4 in functions
+
 
 import FreeCAD
 import Arch, ArchComponent
@@ -470,10 +472,12 @@ class Ui_AttrSelect:
 
 
                     if attr == txt_name and obj.WFName ==  val : add = True
+                    elif attr == txt_wclass and obj.WoodClass == val : add = True
                     elif attr == txt_type and obj.Type ==  val : add = True
                     elif attr == txt_group and obj.Group == val: add = True
                     elif attr == txt_sgroup and obj.SubGroup == val: add = True
                     elif attr == txt_mach and obj.MachiningType == val: add = True
+                    #elif attr == txt_u1
 
                 if add :
                     if obj.ViewObject.Visibility:
