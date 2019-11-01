@@ -101,6 +101,7 @@ class Ui_Definition:
         self.isLength=False
         self.l=self.paneldef.length
         self.w=self.paneldef.width
+        self.t=self.paneldef.thickness
 
         self.form.cb_Orientation.addItems(self.paneldef.getOrientationTypes())
         self.form.cb_Name.addItems(WFrameAttributes.getNames())
@@ -144,8 +145,8 @@ class Ui_Definition:
         self.callbackClick = self.curview.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.mouseClick)
         self.callbackMove = self.curview.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.mouseMove)
         self.callbackKeys =None
-        self.enterkeyCode= 65293
-        self.returnKeyCode=65421
+        self.enterkeyCode= 65293# don't know how to to use c++ enum SoKeyboardEvent::Key::ENTER
+        self.returnKeyCode=65421# don't know how to to use c++ enum SoKeyboardEvent::Key::RETURN
 
 
     def closeEvents(self):
@@ -195,6 +196,7 @@ class Ui_Definition:
                     #start keyboard events
                     self.callbackKeys = self.curview.addEventCallbackPivy(coin.SoKeyboardEvent.getClassTypeId(),self.keys)
                     self.setLength()
+                    self.form.rb_1.setChecked(True)
                     self.redraw()
 
 
@@ -224,7 +226,7 @@ class Ui_Definition:
         self.l = float(self.paneldef.length)
         self.w = float(self.paneldef.width)
 
-        self.form.rb_5.setChecked(True)
+        self.form.rb_1.setChecked(True)
         self.redraw()
 
 
@@ -251,32 +253,59 @@ class Ui_Definition:
 
 
         if self.form.rb_1.isChecked():
-            self.panel.setOffset(Base.Vector(-self.l / 2, -self.w / 2, 0))
+            if self.form.cb_Orientation.currentIndex() == 1:
+                self.panel.setOffset(Base.Vector(-self.l / 2, -self.t,-self.w/2))
+            else:
+                self.panel.setOffset(Base.Vector(-self.l / 2, -self.w / 2, 0))
 
         elif self.form.rb_2.isChecked():
-            self.panel.setOffset(Base.Vector(0, -self.w / 2, 0))
+            if self.form.cb_Orientation.currentIndex() == 1:
+                self.panel.setOffset(Base.Vector(0, -self.t,-self.w/2))
+            else:
+                self.panel.setOffset(Base.Vector(0, -self.w / 2, 0))
 
         elif self.form.rb_3.isChecked():
-            self.panel.setOffset(Base.Vector(self.l / 2, -self.w / 2, 0))
+            if self.form.cb_Orientation.currentIndex() == 1:
+                self.panel.setOffset(Base.Vector(self.l / 2, -self.t,-self.w/2))
+            else:
+                self.panel.setOffset(Base.Vector(self.l / 2, -self.w / 2, 0))
 
         elif self.form.rb_4.isChecked():
-            self.panel.setOffset(Base.Vector(-self.l / 2, 0, 0))
+            if self.form.cb_Orientation.currentIndex() == 1:
+                self.panel.setOffset(Base.Vector(-self.l / 2,-self.t/2,-self.w/2))
+            else:
+                self.panel.setOffset(Base.Vector(-self.l / 2, 0, 0))
 
         elif self.form.rb_5.isChecked():
-            self.panel.setOffset(Base.Vector(0, 0, 0))
+            if self.form.cb_Orientation.currentIndex() == 1:
+                self.panel.setOffset(Base.Vector(0, -self.t/2, -self.w/2))
+            else:
+                self.panel.setOffset(Base.Vector(0,0,0))
 
         elif self.form.rb_6.isChecked():
-            self.panel.setOffset(Base.Vector(self.l / 2, 0, 0))
+            if self.form.cb_Orientation.currentIndex() == 1:
+                self.panel.setOffset(Base.Vector(self.l / 2, -self.t/2,-self.w/2))
+            else:
+                self.panel.setOffset(Base.Vector(self.l / 2, 0, 0))
 
         elif self.form.rb_7.isChecked():
-            self.panel.setOffset(Base.Vector(-self.l / 2, self.w / 2, 0))
+            if self.form.cb_Orientation.currentIndex() == 1:
+                self.panel.setOffset(Base.Vector(-self.l / 2, 0,-self.w/2))
+            else:
+                self.panel.setOffset(Base.Vector(-self.l / 2, self.w / 2, 0))
 
         elif self.form.rb_8.isChecked():
-            self.panel.setOffset(Base.Vector(0, self.w / 2, 0))
+            if self.form.cb_Orientation.currentIndex() == 1:
+                self.panel.setOffset(Base.Vector(0, 0, -self.w/2))
+            else:
+                self.panel.setOffset(Base.Vector(0, self.w / 2, 0))
 
 
         elif self.form.rb_9.isChecked():
-            self.panel.setOffset(Base.Vector(self.l / 2, self.w / 2, 0))
+            if self.form.cb_Orientation.currentIndex() == 1:
+                self.panel.setOffset(Base.Vector(self.l / 2, 0,-self.w/2))
+            else:
+                self.panel.setOffset(Base.Vector(self.l / 2, self.w / 2, 0))
 
         FreeCADGui.Selection.clearSelection()
 
@@ -314,7 +343,7 @@ class Paneldef:
         self.length = 1200
         self.maxLength=1200
         self.orientation=""
-        self.viewTypes=["face","top","cut"]
+        self.viewTypes=["face","top"]
         #the default view type
         self.view=self.viewTypes[0]
 
@@ -332,7 +361,7 @@ class Paneldef:
         return self.preset
 
     def thickness(self,t):
-        if h:self.thickness=t
+        if t:self.thickness=t
         return  self.thickness
 
     def width(self,w):
@@ -459,9 +488,6 @@ class Panel():
         # panel up view
         if self.evalrot[1] in self.paneldef.orientation:
             self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),FreeCAD.Rotation(0, 0, 90))
-        # panel cut view
-        elif self.evalrot[2] in self.paneldef.orientation:
-            self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),FreeCAD.Rotation(90, 0, 0))
 
         FreeCAD.ActiveDocument.recompute()
 
