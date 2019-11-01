@@ -83,7 +83,30 @@ class WFCopy():
             return False
 
 
-FreeCADGui.addCommand('WFCopy', WFCopy())
+
+class WFStretch():
+    """WFrameAttributes"""
+
+    def GetResources(self):
+        return {'Pixmap': __dir__ + '/Resources/icons/WFCopy.svg',
+                'Accel': "W,S",
+                'MenuText': "stretch Object",
+                'ToolTip': "stretch Object"}
+
+    def Activated(self):
+        obj=FreeCADGui.Selection.getSelection()[0]
+        for vert in obj.Shape.Vertexes:
+            print(vert)
+
+
+
+    def IsActive(self):
+        """Here you can define if the command must be active or not (greyed) if certain conditions
+        are met or not. This function is optional."""
+        if FreeCADGui.ActiveDocument:
+            return len(FreeCADGui.Selection.getSelection()) > 0
+        else:
+            return False
 
 
 def copySelection(basePoint=FreeCAD.Vector(0, 0, 0), endPoint=FreeCAD.Vector(0, 0, 0), objlist=None, number=1):
@@ -137,3 +160,7 @@ def translateSelection(basePoint,endPoint,objlist=None):
             obj.Placement.Base = finalPoint
             FreeCADGui.Selection.addSelection(obj)
         FreeCAD.ActiveDocument.recompute()
+
+
+FreeCADGui.addCommand('WFCopy', WFCopy())
+FreeCADGui.addCommand('WFStretch', WFStretch())

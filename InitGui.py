@@ -227,6 +227,7 @@ static char *ferme[] = {
         self.wframe = ["WFrameAlignViewWPlane",
                        "WFrameBeam","WFramePanel","Arch_CutPlane",
                        "WFCopy",
+                       "WFStretch",
                        "WFrameList",
                        "WFEditAttributes",
                        "WFSelectByAttributes"] # A list of command names created in the line above
