@@ -71,7 +71,8 @@ class WFrameBeam():
         self.view = FreeCADGui.ActiveDocument.ActiveView
         self.units = FreeCAD.Units.Quantity(1.0, FreeCAD.Units.Length)
         ###TODO Prepare File
-        # 1 : create Timber group
+        # if doesn't exist :
+        # 1 : create WorkFrame group
         # 2 : Create Layers
         FreeCADGui.Snapper.show()
         panel=Ui_Definition()
@@ -89,9 +90,50 @@ class WFrameBeam():
 FreeCADGui.addCommand('WFrameBeam',WFrameBeam())
 
 
-class Ui_Definition:
+class Ui_Definition(QtGui.QWidget):
     def __init__(self):
+
         self.form = FreeCADGui.PySideUic.loadUi(addBeamUI)
+        loader=FreeCADGui.UiLoader()
+        lbl1 = QtGui.QLabel("Origin X",self.form)
+
+        self.oX = loader.createWidget("Gui::InputField")
+        lbl2 = QtGui.QLabel("Origin Y", self.form)
+        self.oY = loader.createWidget("Gui::InputField")
+        lbl3 = QtGui.QLabel("Origin Z", self.form)
+        self.oZ = loader.createWidget("Gui::InputField")
+        lbl4 = QtGui.QLabel("End X", self.form)
+        self.eX = loader.createWidget("Gui::InputField")
+        lbl5 = QtGui.QLabel("End Y", self.form)
+        self.eY = loader.createWidget("Gui::InputField")
+        lbl6 = QtGui.QLabel("End Z", self.form)
+        self.eZ = loader.createWidget("Gui::InputField")
+        self.form.gridCoords.addWidget(lbl1, 0, 0, 1, 1)
+        self.form.gridCoords.addWidget(self.oX,0,1,1,1)
+        self.form.gridCoords.addWidget(lbl2, 1, 0, 1, 1)
+        self.form.gridCoords.addWidget(self.oY, 1, 1, 1, 1)
+        self.form.gridCoords.addWidget(lbl3, 2, 0, 1, 1)
+        self.form.gridCoords.addWidget(self.oZ, 2, 1, 1, 1)
+        self.form.gridCoords.addWidget(lbl4, 0, 2, 1, 1)
+        self.form.gridCoords.addWidget(self.eX, 0, 3, 1, 1)
+        self.form.gridCoords.addWidget(lbl5, 1, 2, 1, 1)
+        self.form.gridCoords.addWidget(self.eY, 1, 3, 1, 1)
+        self.form.gridCoords.addWidget(lbl6, 2, 2, 1, 1)
+        self.form.gridCoords.addWidget(self.eZ, 2, 3, 1, 1)
+
+        lbl7=QtGui.QLabel("Width",self.form)
+        self.width=loader.createWidget("Gui::InputField")
+        self.form.gridDim.addWidget(lbl7, 0, 0, 1, 1)
+        self.form.gridDim.addWidget(self.width,0,1,1,1)
+        lbl8 = QtGui.QLabel("Height", self.form)
+        self.height = loader.createWidget("Gui::InputField")
+        self.form.gridDim.addWidget(lbl8, 1, 0, 1, 1)
+        self.form.gridDim.addWidget(self.height, 1, 1, 1, 1)
+        self.lbl_Length = QtGui.QLabel("Length", self.form)
+        self.length = loader.createWidget("Gui::InputField")
+        self.form.gridDim.addWidget(self.lbl_Length, 2, 0, 1, 1)
+        self.form.gridDim.addWidget(self.length, 2, 1, 1, 1)
+
         self.beam = Beam(BeamDef())
         self.beamdef = self.beam.beamdef
 
@@ -104,27 +146,29 @@ class Ui_Definition:
 
         self.form.cb_Orientation.addItems(self.beamdef.getOrientationTypes())
         self.form.cb_Name.addItems(WFrameAttributes.getNames())
-        self.form.led_Length.setVisible(False)
-        self.form.lbl_Length.setVisible(False)
+        self.lbl_Length.setVisible(False)
+        self.length.setVisible(False)
 
         #init default values
-        self.form.led_Height.setText(str(self.h))
-        self.form.led_Width.setText(str(self.w))
+        self.width.setText(FreeCAD.Units.Quantity(self.w,FreeCAD.Units.Length).UserString)
+        self.height.setText(FreeCAD.Units.Quantity(self.h, FreeCAD.Units.Length).UserString)
+
         self.form.cb_Name.setCurrentIndex(1)
 
-        ##Wrong decimal point with french keyboard !
+        ##Wrong decimal point with french keyboard
+        # when using QLineEdit!
         ## QLocale doesn't solve problem
-        validator= QtGui.QDoubleValidator(0,99999,1)
-        self.form.led_Length.setValidator(validator)
-        self.form.led_Height.setValidator(validator)
-        self.form.led_Width.setValidator(validator)
+        # Use Gui::InputField solve the problem
+        # but use Qt designer doesn't make sense
+
 
         #connections
         self.form.cb_Orientation.currentIndexChanged.connect(self.sectionChanged)
         self.form.cb_Name.currentIndexChanged.connect(self.redraw)
-        self.form.led_Width.textChanged.connect(self.sectionChanged)
-        self.form.led_Height.textChanged.connect(self.sectionChanged)
-        self.form.led_Length.textChanged.connect(self.redraw)
+        QtCore.QObject.connect(self.width, QtCore.SIGNAL("valueChanged(double)"), self.setWidth)
+        QtCore.QObject.connect(self.height, QtCore.SIGNAL("valueChanged(double)"), self.setHeight)
+        QtCore.QObject.connect(self.length, QtCore.SIGNAL("valueChanged(double)"), self.setLength)
+
         self.form.rb_1.clicked.connect(self.offset)
         self.form.rb_2.clicked.connect(self.offset)
         self.form.rb_3.clicked.connect(self.offset)
@@ -134,9 +178,12 @@ class Ui_Definition:
         self.form.rb_7.clicked.connect(self.offset)
         self.form.rb_8.clicked.connect(self.offset)
         self.form.rb_9.clicked.connect(self.offset)
-        #self.form.ok.clicked.connect(self.accept)
-        #self.form.cancel.clicked.connect(self.reject)
-
+        QtCore.QObject.connect(self.oX, QtCore.SIGNAL("valueChanged(double)"), self.setoX)
+        QtCore.QObject.connect(self.oY, QtCore.SIGNAL("valueChanged(double)"), self.setoY)
+        QtCore.QObject.connect(self.oZ, QtCore.SIGNAL("valueChanged(double)"), self.setoZ)
+        QtCore.QObject.connect(self.eX, QtCore.SIGNAL("valueChanged(double)"), self.seteX)
+        QtCore.QObject.connect(self.eY, QtCore.SIGNAL("valueChanged(double)"), self.seteY)
+        QtCore.QObject.connect(self.eZ, QtCore.SIGNAL("valueChanged(double)"), self.seteZ)
 
         #reimplement getPoint from draft, without Dialog taskbox
 
@@ -147,6 +194,55 @@ class Ui_Definition:
         self.callbackKeys =None
         self.enterkeyCode= 65293
         self.returnKeyCode=65421
+
+    def setoX(self,val):
+        if len(self.points) > 0:
+            if not val == self.points[0][0]:
+                self.points[0][0] = val
+            self.redraw()
+
+    def setoY(self,val):
+        if len(self.points) > 0:
+            if not val == self.points[0][1]:
+                self.points[0][1]=val
+            self.redraw()
+
+    def setoZ(self,val):
+        if len(self.points) > 0:
+            if not val == self.points[0][2]:
+                self.points[0][2]=val
+            self.redraw()
+
+    def seteX(self,val):
+        if len(self.points) > 1:
+            if not val == self.points[1][0]:
+                self.points[1][0] = val
+            self.redraw()
+
+    def seteY(self,val):
+        if len(self.points) > 1:
+            if not val == self.points[1][1]:
+                self.points[1][1]=val
+            self.redraw()
+
+    def seteZ(self,val):
+        if len(self.points) > 1:
+            if not val == self.points[1][2]:
+                self.points[1][2]=val
+            self.redraw()
+
+    def setWidth(self,val):
+        self.beamdef.width=val
+        self.sectionChanged()
+
+    def setHeight(self,val):
+        self.beamdef.height=val
+        self.sectionChanged()
+
+    def setLength(self,val):
+        self.beamdef.length=val
+        self.redraw()
+
 
 
     def closeEvents(self):
@@ -181,15 +277,22 @@ class Ui_Definition:
 
     #retreive point clicked with snap
     def mouseClick(self,event_cb):
+
         event = event_cb.getEvent()
         if event.getButton() == 1:
             if event.getState() == coin.SoMouseButtonEvent.DOWN:
                 #start point
                 if len(self.points) == 0 :
                     self.points.append(self.pt)
+                    self.oX.setText(str(round(self.pt[0],2)))
+                    self.oY.setText(str(round(self.pt[1], 2)))
+                    self.oZ.setText(str(round(self.pt[2], 2)))
                     self.lastpoint=self.pt
                 #end point
                 elif len(self.points) == 1:
+                    self.eX.setText(str(round(self.pt[0], 2)))
+                    self.eY.setText(str(round(self.pt[1], 2)))
+                    self.eZ.setText(str(round(self.pt[2], 2)))
                     self.closeEvents()
                     self.points.append(self.pt)
                     FreeCADGui.Snapper.off()
@@ -217,18 +320,17 @@ class Ui_Definition:
         #if cut view
         print("showLength",self.form.cb_Orientation.currentIndex())
         if self.form.cb_Orientation.currentIndex() == 2:
-            self.form.led_Length.setVisible(True)
-            self.form.lbl_Length.setVisible(True)
-            self.form.led_Length.setText("1000")
+            self.length.setVisible(True)
+            self.lbl_Length.setVisible(True)
+            self.length.setText(FreeCAD.Units.Quantity(1000, FreeCAD.Units.Length).UserString)
             self.isLength=True
 
         else:
             if self.form.cb_Orientation.currentIndex() == 1:
                 self.w = float(self.beamdef.height)
                 self.h = float(self.beamdef.width)
-
-            self.form.led_Length.setVisible(False)
-            self.form.lbl_Length.setVisible(False)
+            self.length.setVisible(False)
+            self.lbl_Length.setVisible(False)
             self.beam.length = ""
             self.isLength=False
         self.form.rb_5.setChecked(True)
@@ -333,10 +435,6 @@ class Ui_Definition:
         if len(self.points) == 2 :
             self.beamdef.orientation = self.form.cb_Orientation.currentText()
             self.beamdef.name = self.form.cb_Name.currentText()
-            self.beamdef.width = self.form.led_Width.text()
-            self.beamdef.height = self.form.led_Height.text()
-            if self.isLength:
-                self.beamdef.length = self.form.led_Length.text()
             self.beam.delete()
             self.beam.beamdef=self.beamdef
             self.beam.create(startPoint=self.points[0], endPoint=self.points[1], isShadow=True)
