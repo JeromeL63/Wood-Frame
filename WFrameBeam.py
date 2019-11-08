@@ -32,11 +32,10 @@ import WFrameAttributes
 
 if FreeCAD.GuiUp:
     import FreeCADGui
-    import DraftTools
-    from DraftTools import translate,Line
 else:
     def translate(ctxt,txt):
         return txt
+
 # waiting for WFrame_rc and eventual FreeCAD integration
 import os
 __dir__ = os.path.dirname(__file__)
@@ -70,6 +69,7 @@ class WFrameBeam():
     def Activated(self):
         self.view = FreeCADGui.ActiveDocument.ActiveView
         self.units = FreeCAD.Units.Quantity(1.0, FreeCAD.Units.Length)
+
         ###TODO Prepare File
         # if doesn't exist :
         # 1 : create WorkFrame group
@@ -93,10 +93,20 @@ FreeCADGui.addCommand('WFrameBeam',WFrameBeam())
 class Ui_Definition(QtGui.QWidget):
     def __init__(self):
 
+        # Wrong decimal point with french keyboard
+        # when using QLineEdit!
+        # QLocale doesn't solve problem
+        # Use Gui::InputField solve the problem
+        # so you have to create input field here
+        # but use Qt designer doesn't make sense
+        # finally the ui will be totally written here
+
         self.form = FreeCADGui.PySideUic.loadUi(addBeamUI)
         loader=FreeCADGui.UiLoader()
-        lbl1 = QtGui.QLabel("Origin X",self.form)
+        lbl01=QtGui.QLabel("Global coords",self.form)
+        lbl02 = QtGui.QLabel("Local Vector", self.form)
 
+        lbl1 = QtGui.QLabel("Origin X",self.form)
         self.oX = loader.createWidget("Gui::InputField")
         lbl2 = QtGui.QLabel("Origin Y", self.form)
         self.oY = loader.createWidget("Gui::InputField")
@@ -106,20 +116,19 @@ class Ui_Definition(QtGui.QWidget):
         self.eX = loader.createWidget("Gui::InputField")
         lbl5 = QtGui.QLabel("End Y", self.form)
         self.eY = loader.createWidget("Gui::InputField")
-        lbl6 = QtGui.QLabel("End Z", self.form)
-        self.eZ = loader.createWidget("Gui::InputField")
-        self.form.gridCoords.addWidget(lbl1, 0, 0, 1, 1)
-        self.form.gridCoords.addWidget(self.oX,0,1,1,1)
-        self.form.gridCoords.addWidget(lbl2, 1, 0, 1, 1)
-        self.form.gridCoords.addWidget(self.oY, 1, 1, 1, 1)
-        self.form.gridCoords.addWidget(lbl3, 2, 0, 1, 1)
-        self.form.gridCoords.addWidget(self.oZ, 2, 1, 1, 1)
-        self.form.gridCoords.addWidget(lbl4, 0, 2, 1, 1)
-        self.form.gridCoords.addWidget(self.eX, 0, 3, 1, 1)
-        self.form.gridCoords.addWidget(lbl5, 1, 2, 1, 1)
-        self.form.gridCoords.addWidget(self.eY, 1, 3, 1, 1)
-        self.form.gridCoords.addWidget(lbl6, 2, 2, 1, 1)
-        self.form.gridCoords.addWidget(self.eZ, 2, 3, 1, 1)
+
+        self.form.gridCoords.addWidget(lbl01,0,0,1,1)
+        self.form.gridCoords.addWidget(lbl02, 0, 2, 1, 1)
+        self.form.gridCoords.addWidget(lbl1, 1, 0, 1, 1)
+        self.form.gridCoords.addWidget(self.oX,1,1,1,1)
+        self.form.gridCoords.addWidget(lbl2, 2, 0, 1, 1)
+        self.form.gridCoords.addWidget(self.oY, 2, 1, 1, 1)
+        self.form.gridCoords.addWidget(lbl3, 3, 0, 1, 1)
+        self.form.gridCoords.addWidget(self.oZ, 3, 1, 1, 1)
+        self.form.gridCoords.addWidget(lbl4, 1, 2, 1, 1)
+        self.form.gridCoords.addWidget(self.eX, 1, 3, 1, 1)
+        self.form.gridCoords.addWidget(lbl5, 2, 2, 1, 1)
+        self.form.gridCoords.addWidget(self.eY, 2, 3, 1, 1)
 
         lbl7=QtGui.QLabel("Width",self.form)
         self.width=loader.createWidget("Gui::InputField")
@@ -138,6 +147,7 @@ class Ui_Definition(QtGui.QWidget):
         self.beamdef = self.beam.beamdef
 
         self.points=[]
+        self.vecInLocalCoords = Base.Vector(0,0,0)
         self.pt=None
         self.lastpoint=None
         self.isLength=False
@@ -154,13 +164,6 @@ class Ui_Definition(QtGui.QWidget):
         self.height.setText(FreeCAD.Units.Quantity(self.h, FreeCAD.Units.Length).UserString)
 
         self.form.cb_Name.setCurrentIndex(1)
-
-        ##Wrong decimal point with french keyboard
-        # when using QLineEdit!
-        ## QLocale doesn't solve problem
-        # Use Gui::InputField solve the problem
-        # but use Qt designer doesn't make sense
-
 
         #connections
         self.form.cb_Orientation.currentIndexChanged.connect(self.sectionChanged)
@@ -183,7 +186,6 @@ class Ui_Definition(QtGui.QWidget):
         QtCore.QObject.connect(self.oZ, QtCore.SIGNAL("valueChanged(double)"), self.setoZ)
         QtCore.QObject.connect(self.eX, QtCore.SIGNAL("valueChanged(double)"), self.seteX)
         QtCore.QObject.connect(self.eY, QtCore.SIGNAL("valueChanged(double)"), self.seteY)
-        QtCore.QObject.connect(self.eZ, QtCore.SIGNAL("valueChanged(double)"), self.seteZ)
 
         #reimplement getPoint from draft, without Dialog taskbox
 
@@ -215,21 +217,25 @@ class Ui_Definition(QtGui.QWidget):
 
     def seteX(self,val):
         if len(self.points) > 1:
-            if not val == self.points[1][0]:
-                self.points[1][0] = val
-            self.redraw()
+            if not val == self.vecInLocalCoords[0]:
+                self.vecInLocalCoords[0]=val
+                # convert local vector in global point
+                origInLocalCoords = FreeCAD.DraftWorkingPlane.getLocalCoords(self.points[0])
+                vecToGlobalCoords = self.vecInLocalCoords + origInLocalCoords
+                vecToGlobalCoords = FreeCAD.DraftWorkingPlane.getGlobalCoords(vecToGlobalCoords)
+                self.points[1]=vecToGlobalCoords
+                self.redraw()
 
     def seteY(self,val):
         if len(self.points) > 1:
-            if not val == self.points[1][1]:
-                self.points[1][1]=val
-            self.redraw()
-
-    def seteZ(self,val):
-        if len(self.points) > 1:
-            if not val == self.points[1][2]:
-                self.points[1][2]=val
-            self.redraw()
+            if not val == self.vecInLocalCoords[1]:
+                self.vecInLocalCoords[1]=val
+                # convert local vector in global point
+                origInLocalCoords = FreeCAD.DraftWorkingPlane.getLocalCoords(self.points[0])
+                vecToGlobalCoords = self.vecInLocalCoords + origInLocalCoords
+                vecToGlobalCoords = FreeCAD.DraftWorkingPlane.getGlobalCoords(vecToGlobalCoords)
+                self.points[1]=vecToGlobalCoords
+                self.redraw()
 
     def setWidth(self,val):
         self.beamdef.width=val
@@ -290,9 +296,14 @@ class Ui_Definition(QtGui.QWidget):
                     self.lastpoint=self.pt
                 #end point
                 elif len(self.points) == 1:
-                    self.eX.setText(str(round(self.pt[0], 2)))
-                    self.eY.setText(str(round(self.pt[1], 2)))
-                    self.eZ.setText(str(round(self.pt[2], 2)))
+                    #calculate the local vector
+                    origInLocalCoords=FreeCAD.DraftWorkingPlane.getLocalCoords(self.points[0])
+                    self.vecInLocalCoords=FreeCAD.DraftWorkingPlane.getLocalCoords(self.pt)
+                    self.vecInLocalCoords = self.vecInLocalCoords - origInLocalCoords
+                    self.eX.setText(str(round(self.vecInLocalCoords[0], 2)))
+                    self.eY.setText(str(round(self.vecInLocalCoords[1], 2)))
+
+
                     self.closeEvents()
                     self.points.append(self.pt)
                     FreeCADGui.Snapper.off()
