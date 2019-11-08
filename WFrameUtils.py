@@ -41,12 +41,18 @@ __dir__ = os.path.dirname(__file__)
 
 def QT_TRANSLATE_NOOP(ctx,txt): return txt # dummy function for the QT translator
 
+
+
+
+
+
+
 class WFCopy():
     """WFrameAttributes"""
 
     def GetResources(self):
         return {'Pixmap': __dir__ + '/Resources/icons/WFCopy.svg',
-                'Accel': "W,C",
+                'Accel': "6",
                 'MenuText': "Copy Object",
                 'ToolTip': "Copy Object"}
 
