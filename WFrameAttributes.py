@@ -50,11 +50,6 @@ attrEditUI = __dir__ + "/Resources/Ui/AttrEdit.ui"
 attrSelectUI = __dir__ + "/Resources/Ui/AttrSelect.ui"
 
 
-# XML resources, where attributes lists are stored
-xmlpath = __dir__ + "/Resources/Attributes.xml"
-xmltree = AT.parse(xmlpath)
-xmlroot = xmltree.getroot()
-
 # if some attributes are different show ***
 multiNames = "***"
 
@@ -131,68 +126,96 @@ txt_u1 = "User1"
 txt_u2 = "User2"
 txt_u3 = "User3"
 txt_u4 = "User4"
+lstattr = [txt_name,txt_type,txt_wclass,txt_group,txt_sgroup,txt_invnum,txt_prodnum,txt_mach,txt_u1,txt_u2,txt_u3,txt_u4]
+
+class Attributes:
+    """Create a python object that contains all attributes
+    All are saved in the current project with this way
+    """
+    def __init__(self,obj):
+        obj.Proxy = self
+
+        obj.addProperty("App::PropertyStringList",txt_name,"WFrame")
+        obj.WFName=["Panne","Chevron","Poteau"]
+        obj.setEditorMode(txt_name,2)
+
+        obj.addProperty("App::PropertyStringList", txt_type, "WFrame")
+        obj.Type = ["Bar", "Panel", "Axe", "Auxiliary"]
+        obj.setEditorMode(txt_type, 2)
+
+        obj.addProperty("App::PropertyStringList",txt_wclass,"WFrame")
+        obj.WoodClass=["C18","C24","GL24H","Kerto S","Kerto Q","OSB3","CTBH","CTBX","BA13","Shingle","Tuiles terre cuite"]
+        obj.setEditorMode(txt_wclass, 2)
+
+        obj.addProperty("App::PropertyStringList",txt_group,"WFrame")
+        obj.Group=["Charpente","Couverture","Ossature","Plancher RDC","Plancher R+1"]
+        obj.setEditorMode(txt_group, 2)
+
+        obj.addProperty("App::PropertyStringList",txt_sgroup,"WFrame")
+        obj.SubGroup=["Mur_A","Mur_B","Mur_C"]
+        obj.setEditorMode(txt_sgroup, 2)
+
+
+        obj.addProperty("App::PropertyStringList",txt_mach,"WFrame")
+        obj.setEditorMode(txt_mach, 2)
+
+        obj.addProperty("App::PropertyString", txt_invnum, "WFrame")
+        obj.setEditorMode(txt_invnum, 2)
+
+        obj.addProperty("App::PropertyString", txt_prodnum, "WFrame")
+        obj.setEditorMode(txt_prodnum, 2)
+
+
+        obj.addProperty("App::PropertyString","Info", "WFrame")
+        obj.Info ="Don't remove this object or you'll loose all your attributes !!!"
+
+        obj.setEditorMode("Label", 2)
+
+    def execute(self,obj):
+        pass
+
+
+def check():
+    # if there's not attributes object
+    if not hasattr(FreeCAD.ActiveDocument, "Attributes"):
+        createAttributesList()
+
+
+def createAttributesList():
+    obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Attributes")
+    d = Attributes(obj)
+    d.ShowInTree = False
+    FreeCAD.ActiveDocument.recompute()
+
 
 def getAttrlist():
-    """
-        Get the attributes/properties list available
-        Name: the attribute name is used to have some presets like material=C18, machining type = Purlin etc..
-        Type: a beam,a wall, an axe or a panel....
-        Material: attribute used to group parts on command list
-        Group: ex: group = roof or group= walls
-        Sub-group:  ex: sub-group= Wall_A1, sub-group=Wall_B2
-        Prod. number : the production number shouldn't be editable, and a tool should be written to find same parts and give it the same number
-        Inv. number : same as Prod number, but it's the invoice number
-        """
-    lst = []
-    for child in xmlroot:
-        if not child.tag in lst:
-            lst.append(child.tag)
-    lst.append(txt_type)
-    lst.append(txt_prodnum)
-    lst.append(txt_invnum)
-    return lst
-
+    # for more convenience
+    return lstattr
 
 def getNames():
-    lst = []
-    for child in xmlroot.findall(txt_name):
-        lst.append(child.attrib['name'])
-    return lst
+    check()
+    return FreeCAD.ActiveDocument.getObject("Attributes").getPropertyByName(txt_name)
 
 
 def getTypes():
-    lst = ["Bar","Panel","Axe","Auxiliary"]
-    return lst
-
+    check()
+    return FreeCAD.ActiveDocument.getObject("Attributes").getPropertyByName(txt_type)
 
 def getWoodClasses():
-    lst = []
-    for child in xmlroot.findall(txt_wclass):
-        lst.append(child.attrib['name'])
-    return lst
-
+    check()
+    return FreeCAD.ActiveDocument.getObject("Attributes").getPropertyByName(txt_wclass)
 
 def getGroups():
-    # have to search on IFC data probably better...
-    # but i don't known if there's no limit to create new groups
-    lst = []
-    for child in xmlroot.findall(txt_group):
-        lst.append(child.attrib['name'])
-    return lst
-
+    check()
+    return FreeCAD.ActiveDocument.getObject("Attributes").getPropertyByName(txt_group)
 
 def getSub_Groups():
-    lst = []
-    for child in xmlroot.findall(txt_sgroup):
-        lst.append(child.attrib['name'])
-    return lst
-
+    check()
+    return FreeCAD.ActiveDocument.getObject("Attributes").getPropertyByName(txt_sgroup)
 
 def getMachining_Types():
-    lst = []
-    for child in xmlroot.findall(txt_mach):
-        lst.append(child.attrib['name'])
-    return lst
+    check()
+    return FreeCAD.ActiveDocument.getObject("Attributes").getPropertyByName(txt_mach)
 
 
 def insertAttr(obj: ArchComponent.Component):
@@ -201,7 +224,6 @@ def insertAttr(obj: ArchComponent.Component):
     '''
     for i in getAttrlist():
         obj.addProperty("App::PropertyString", i, "WFrame", "", 1)
-
 
 
 def filterByAttr(objList=None, filter=""):
@@ -231,7 +253,6 @@ class Ui_AttrEdit:
 
         self.form.addName.clicked.connect(self.addName)
         # no more propositions
-        # self.form.addType.clicked.connect(self.addType)
         self.form.addWoodClass.clicked.connect(self.addWoodClass)
         self.form.addGroup.clicked.connect(self.addGroup)
         self.form.addSubGroup.clicked.connect(self.addSubGroup)
@@ -337,26 +358,22 @@ class Ui_AttrEdit:
     def addName(self):
         value, ok = QtGui.QInputDialog.getText(None, "Add", "new "+txt_name, QtGui.QLineEdit.Normal, "")
         if ok :
-            writexml(txt_name,value)
+            obj = FreeCAD.ActiveDocument.getObject("Attributes")
+            list = obj.getPropertyByName(txt_name)
+            list.append(value)
+            obj.WFName=list
             self.form.cb_Name.clear()
             self.form.cb_Name.addItems(getNames())
             ind=self.form.cb_Name.count()-1
             self.form.cb_Name.setCurrentIndex(ind)
-    '''
-    def addType(self):
-        value, ok = QtGui.QInputDialog.getText(None, "Add", "new " + txt_type, QtGui.QLineEdit.Normal, "")
-        if ok:
-            writexml(txt_type,value)
-            self.form.cb_Type.clear()
-            self.form.cb_Type.addItems(getNames())
-            ind = self.form.cb_Type.count() - 1
-            self.form.cb_Type.setCurrentIndex(ind)
-    '''
 
     def addWoodClass(self):
         value, ok = QtGui.QInputDialog.getText(None, "Add", "new " + txt_wclass, QtGui.QLineEdit.Normal, "")
         if ok:
-            writexml(txt_wclass, value)
+            obj = FreeCAD.ActiveDocument.getObject("Attributes")
+            list = obj.getPropertyByName(txt_wclass)
+            list.append(value)
+            obj.WoodClass = list
             self.form.cb_WoodClass.clear()
             self.form.cb_WoodClass.addItems(getWoodClasses())
             ind = self.form.cb_WoodClass.count() - 1
@@ -365,7 +382,10 @@ class Ui_AttrEdit:
     def addGroup(self):
         value, ok = QtGui.QInputDialog.getText(None, "Add", "new " + txt_group, QtGui.QLineEdit.Normal, "")
         if ok:
-            writexml(txt_group, value)
+            obj = FreeCAD.ActiveDocument.getObject("Attributes")
+            list = obj.getPropertyByName(txt_group)
+            list.append(value)
+            obj.Group = list
             self.form.cb_Group.clear()
             self.form.cb_Group.addItems(getGroups())
             ind = self.form.cb_Group.count() - 1
@@ -374,7 +394,10 @@ class Ui_AttrEdit:
     def addSubGroup(self):
         value, ok = QtGui.QInputDialog.getText(None, "Add", "new " + txt_sgroup, QtGui.QLineEdit.Normal, "")
         if ok:
-            writexml(txt_sgroup, value)
+            obj = FreeCAD.ActiveDocument.getObject("Attributes")
+            list = obj.getPropertyByName(txt_sgroup)
+            list.append(value)
+            obj.SubGroup = list
             self.form.cb_Sub_Group.clear()
             self.form.cb_Sub_Group.addItems(getSub_Groups())
             ind = self.form.cb_Sub_Group.count() - 1
@@ -383,41 +406,17 @@ class Ui_AttrEdit:
     def addMachining(self):
         value, ok = QtGui.QInputDialog.getText(None, "Add", "new " + txt_mach, QtGui.QLineEdit.Normal, "")
         if ok:
-            writexml(txt_mach, value)
+            obj = FreeCAD.ActiveDocument.getObject("Attributes")
+            list = obj.getPropertyByName(txt_mach)
+            list.append(value)
+            obj.MachiningType = list
             self.form.cb_Machining.clear()
             self.form.cb_Machining.addItems(getMachining_Types())
             ind = self.form.cb_Machining.count() - 1
             self.form.cb_Machining.setCurrentIndex(ind)
 
-def writexml(tag,value):
-    '''add a line in the xml file'''
-    el = AT.Element(tag, attrib={'name': value})
-    xmlroot.append(el)
-    indent(xmlroot)
-    AT.dump(xmlroot)
-    xmltree.write(xmlpath, encoding="utf-8", xml_declaration=True)
-
-
-def indent(elem, level=0):
-    '''indent the xml file'''
-    i = "\n" + level*"  "
-    if len(elem):
-        if not elem.text or not elem.text.strip():
-            elem.text = i + "  "
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-        for elem in elem:
-            indent(elem, level+1)
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-    else:
-        if level and (not elem.tail or not elem.tail.strip()):
-            elem.tail = i
-
-
 class Ui_AttrSelect:
     def __init__(self):
-        self.magicWord="WFName"
         self.form = FreeCADGui.PySideUic.loadUi(attrSelectUI)
         self.form.cb_AttrList.addItems(getAttrlist())
         self.form.cb_AttrList.setCurrentIndex(-1)
@@ -430,32 +429,34 @@ class Ui_AttrSelect:
         self.clearingValues=False
 
     def fill(self):
-        lst = []
+        self.lst = []
         for obj in FreeCAD.ActiveDocument.Objects:
 
-            # test if the object have WFrame attributes
-            if self.magicWord in obj.PropertiesList:
+            # test if the object have WFrame attributes and is not the root Attributes object
+            if hasattr(obj,"WFName") and not obj.Label == "Attributes":
+
                 n = self.form.cb_AttrList.currentText()
 
                 if n == txt_name :
-                    lst.append(obj.WFName)
+                    self.lst.append(obj.WFName)
                 elif n == txt_type:
-                    lst.append(obj.Type)
+                    self.lst.append(obj.Type)
                 elif n == txt_wclass:
-                    lst.append(obj.WoodClass)
+                    self.lst.append(obj.WoodClass)
                 elif n == txt_group:
-                    lst.append(obj.Group)
+                    self.lst.append(obj.Group)
                 elif n == txt_sgroup:
-                    lst.append(obj.SubGroup)
+                    self.lst.append(obj.SubGroup)
                 elif n == txt_mach:
-                    lst.append(obj.MachiningType)
+                    self.lst.append(obj.MachiningType)
 
         # remove doubles
-        lst =list(set(lst))
+        print(self.lst)
+        self.lst =list(set(self.lst))
         self.clearingValues=True
         self.form.cb_Values.clear()
         #print(lst,getAttrlist())
-        self.form.cb_Values.addItems(lst)
+        self.form.cb_Values.addItems(self.lst)
         self.clearingValues=False
 
     def update(self):
@@ -466,7 +467,7 @@ class Ui_AttrSelect:
             for obj in FreeCAD.ActiveDocument.Objects:
                 add=False
 
-                if self.magicWord in obj.PropertiesList:
+                if hasattr(obj,"WFName") :
                     attr = self.form.cb_AttrList.currentText()
                     val = self.form.cb_Values.currentText()
 
