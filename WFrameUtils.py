@@ -31,7 +31,10 @@ __author__ = "Jerome Laverroux"
 __url__ = "http://www.freecadweb.org"
 
 import FreeCAD
+from FreeCAD import Base
 import os
+from math import *
+
 
 if FreeCAD.GuiUp:
     import FreeCADGui,DraftTrackers,DraftVecUtils
@@ -170,3 +173,107 @@ def translateSelection(basePoint,endPoint,objlist=None):
 
 FreeCADGui.addCommand('WFCopy', WFCopy())
 FreeCADGui.addCommand('WFStretch', WFStretch())
+
+
+
+def offset(height,width,orientation=0,position=5):
+    '''
+    This function return an offset point calculated with heigth width and orientation
+    :param height: part's height
+    :param width: part's width
+    :param orientation: orientation between 0 to 2
+    :param position: from 1 to 9 equal numpad positions
+    :return: Base.Vector of the offset
+    '''
+    out=Base.Vector(0,0,0)
+
+    #TODO dashed and dashdot line style doesn't work properly
+
+    if position == 1:
+        if orientation == 2:
+            out=Base.Vector(-width / 2, -height / 2, 0)
+        else:
+            out=Base.Vector(0, -height / 2, -width / 2)
+        #self.beam.setSolid()
+
+    elif position == 2:
+        if orientation == 2:
+            out=Base.Vector(0, -height / 2, 0)
+            #self.beam.setSolid()
+        else:
+            out=Base.Vector(0, -height / 2, 0)
+            #self.beam.setDashDot()
+
+    elif position == 3:
+        if orientation == 2:
+            out=Base.Vector(width / 2, -height / 2, 0)
+            #self.beam.setSolid()
+        else:
+            out=Base.Vector(0, -height / 2, width / 2)
+            #self.beam.setDashed()
+
+    elif position == 4:
+        if orientation == 2:
+            out=Base.Vector(-width / 2, 0, 0)
+            #self.beam.setSolid()
+        else:
+            out=Base.Vector(0, 0, -width / 2)
+            #self.beam.setSolid()
+
+    elif position == 5:
+        if orientation == 2:
+            out=Base.Vector(0, 0, 0)
+            #self.beam.setSolid()
+        else:
+            out=Base.Vector(0, 0, 0)
+            #self.beam.setDashDot()
+
+    elif position == 6:
+        if orientation == 2:
+            out=Base.Vector(width / 2, 0, 0)
+            #self.beam.setSolid()
+        else:
+            out=Base.Vector(0, 0, width / 2)
+            #self.beam.setDashed()
+
+    elif position == 7:
+        if orientation == 2:
+            out=Base.Vector(-width / 2, height / 2, 0)
+            #self.beam.setSolid()
+        else:
+            out=Base.Vector(0, height / 2, -width / 2)
+            #self.beam.setSolid()
+
+    elif position == 8:
+        if orientation == 2:
+            out=Base.Vector(0, height / 2, 0)
+            #self.beam.setSolid()
+        else:
+            out=Base.Vector(0, height / 2, 0)
+            #self.beam.setDashDot()
+
+    elif position == 9:
+        if orientation == 2:
+            out=Base.Vector(width / 2, height / 2, 0)
+        else:
+            out=Base.Vector(0, height / 2, width / 2)
+            #self.beam.setDashed()
+    return out
+
+def setRotations(structure=None,points=[Base.Vector(0,0,0),Base.Vector(0,0,0)],wplan=None):
+    '''Rotate structure by the given two points on the current workingplane wplan'''
+    import DraftVecUtils,Draft
+
+    vecAngle = FreeCAD.Vector(0, 0, 0)
+    vecAngle[0] = points[1][0] - points[0][0]
+    vecAngle[1] = points[1][1] - points[0][1]
+    vecAngle[2] = points[1][2] - points[0][2]
+
+    # along workingplane normal
+    angle = DraftVecUtils.angle(wplan.u, vecAngle, wplan.axis)
+    angle = degrees(angle)
+
+    # rotate in the current working plane
+    Draft.rotate(structure, angle, center=points[0], axis=wplan.getNormal(), copy=False)
+
+    return structure
