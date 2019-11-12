@@ -25,7 +25,7 @@
 
 
 import FreeCAD
-import Arch, ArchComponent
+import ArchComponent,Draft
 import xml.etree.ElementTree as AT
 from math import *
 import WFrameUtils
@@ -176,15 +176,37 @@ class Attributes:
 
 
 def check():
-    # if there's not attributes object
-    if not hasattr(FreeCAD.ActiveDocument, "Attributes"):
+    # if there's no WFrame Group
+    if not hasattr(FreeCAD.ActiveDocument, "WFrame"):
+        FreeCAD.ActiveDocument.addObject("App::DocumentObjectGroup","WFrame")
+        ###TODO : Hide group in treeView
         createAttributesList()
+        FreeCAD.ActiveDocument.WFrame.addObject(FreeCAD.ActiveDocument.Attributes)
+        ###TODO : Create Materials
+        ###TODO : Create Layers
+        ###WARNING : Layers in draft are called "Layer" and not by name !!!!
+        # example
+        r = (1 / 255) * 80
+        g = (1 / 255) * 255
+        b = (1 / 255) * 255
+        Draft.makeLayer("Principal",linecolor=(r,g,b))
+        FreeCAD.ActiveDocument.Principal.ViewObject.OverrideChildren=False
+        r = (1 / 255) * 180
+        g = (1 / 255) * 180
+        b = (1 / 255) * 180
+        Draft.makeLayer("Secondaire", linecolor=(r, g, b))
+        r = (1 / 255) * 80
+        g = (1 / 255) * 255
+        b = (1 / 255) * 50
+        Draft.makeLayer("Complémentaire", linecolor=(r, g, b))
+
+
+
 
 
 def createAttributesList():
     obj = FreeCAD.ActiveDocument.addObject("App::FeaturePython", "Attributes")
     d = Attributes(obj)
-    d.ShowInTree = False
     FreeCAD.ActiveDocument.recompute()
 
 
