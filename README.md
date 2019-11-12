@@ -15,9 +15,9 @@ It uses the FreeCAD Draft and Arch workbenches.
 
 ## Toolbar
 
-![WFrameBeam](Resources/icons/WFrameBeam.svg)  Add a beam
+![WFBeam](Resources/icons/WF_Beam.svg)  Add a beam
 
-![WFramePanel](Resources/icons/WFramePanel.svg)  Add a panel
+![WFPanel](Resources/icons/WF_Panel.svg)  Add a panel
 
 ![WFAttrEdit](Resources/icons/WFEditAttr.svg)  edit attributes 
 
