@@ -1,70 +1,68 @@
-#***************************************************************************
-#*                                                                         *
-#*   Copyright (c) 2019                                                    *
-#*   Jerome LAVERROUX <jerome.laverroux@free.fr                            *
-#*                                                                         *
-#*   This program is free software; you can redistribute it and/or modify  *
-#*   it under the terms of the GNU Lesser General Public License (LGPL)    *
-#*   as published by the Free Software Foundation; either version 2 of     *
-#*   the License, or (at your option) any later version.                   *
-#*   for detail see the LICENCE text file.                                 *
-#*                                                                         *
-#*   This program is distributed in the hope that it will be useful,       *
-#*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-#*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-#*   GNU Library General Public License for more details.                  *
-#*                                                                         *
-#*   You should have received a copy of the GNU Library General Public     *
-#*   License along with this program; if not, write to the Free Software   *
-#*   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
-#*   USA                                                                   *
-#*                                                                         *
-#***************************************************************************
+# ***************************************************************************
+# *                                                                         *
+# *   Copyright (c) 2019                                                    *
+# *   Jerome LAVERROUX <jerome.laverroux@free.fr                            *
+# *                                                                         *
+# *   This program is free software; you can redistribute it and/or modify  *
+# *   it under the terms of the GNU Lesser General Public License (LGPL)    *
+# *   as published by the Free Software Foundation; either version 2 of     *
+# *   the License, or (at your option) any later version.                   *
+# *   for detail see the LICENCE text file.                                 *
+# *                                                                         *
+# *   This program is distributed in the hope that it will be useful,       *
+# *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+# *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+# *   GNU Library General Public License for more details.                  *
+# *                                                                         *
+# *   You should have received a copy of the GNU Library General Public     *
+# *   License along with this program; if not, write to the Free Software   *
+# *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  *
+# *   USA                                                                   *
+# *                                                                         *
+# ***************************************************************************
+
+### TODO : Add function addNewName with the ui Button
 
 
-import FreeCAD, Arch, Draft,ArchComponent, DraftVecUtils,ArchCommands, ArchStructure,math,FreeCADGui,WorkingPlane
-from FreeCAD import Base, Vector,Rotation
+import FreeCAD, Arch, Draft, ArchComponent, DraftVecUtils, ArchCommands, ArchStructure, math, FreeCADGui, WorkingPlane
+from FreeCAD import Base, Vector, Rotation
 from math import *
 
 import DraftTrackers
-import WFrameAttributes
-
+import WFrameAttributes, WFrameUtils, WFrameDialogs
 
 if FreeCAD.GuiUp:
     import FreeCADGui
 else:
-    def translate(ctxt,txt):
+    def translate(ctxt, txt):
         return txt
 
 # waiting for WFrame_rc and eventual FreeCAD integration
 import os
+
 __dir__ = os.path.dirname(__file__)
 
-__title__="FreeCAD WoodFrame Beam"
+__title__ = "FreeCAD WoodFrame Beam"
 __author__ = "Jerome Laverroux"
 __url__ = "http://www.freecadweb.org"
 
-addBeamUI = __dir__ + "/Resources/Ui/AddBeam.ui"
-
-from PySide import QtGui,QtCore
+from PySide import QtGui, QtCore
 from pivy import coin
 
 
-class WFrameBeam():
-    """WFrameBeam"""
+class WF_Beam():
+    """WFBeam"""
 
     def __init__(self):
         self.view = None
         self.units = None
         self.points = []
 
-
-
     def GetResources(self):
-        return {'Pixmap'  :  __dir__ + '/Resources/icons/WFrameBeam.svg',
-                'Accel' : "W,B",
-                'MenuText': "WFrameBeam",
-                'ToolTip' : "Create an advanced beam with better positionning method"}
+        return {'Pixmap': __dir__ + '/Resources/icons/WF_Beam.svg',
+                'Accel': "W,B",
+                'MenuText': "Add beam",
+                'ToolTip': "Create an advanced beam with better positionning method"}
 
     def Activated(self):
         self.view = FreeCADGui.ActiveDocument.ActiveView
@@ -75,7 +73,7 @@ class WFrameBeam():
         # 1 : create WorkFrame group
         # 2 : Create Layers
         FreeCADGui.Snapper.show()
-        panel=Ui_Definition()
+        panel = Ui_Definition()
         FreeCADGui.Control.showDialog(panel)
         return
 
@@ -87,172 +85,131 @@ class WFrameBeam():
             return False
 
 
-FreeCADGui.addCommand('WFrameBeam',WFrameBeam())
+FreeCADGui.addCommand('WF_Beam', WF_Beam())
 
 
-class Ui_Definition(QtGui.QWidget):
+class Ui_Definition():
     def __init__(self):
 
-        # Wrong decimal point with french keyboard
-        # when using QLineEdit!
-        # QLocale doesn't solve problem
-        # Use Gui::InputField solve the problem
-        # so you have to create input field here
-        # but use Qt designer doesn't make sense
-        # finally the ui will be totally written here
+        self.beam = Beam()
+        self.points = []
+        self.vecInLocalCoords = Base.Vector(0, 0, 0)
+        self.pt = None
+        self.lastpoint = None
+        self.isLength = False
+        self.h = self.beam.height
+        self.w = self.beam.width
 
-        self.form = FreeCADGui.PySideUic.loadUi(addBeamUI)
-        loader=FreeCADGui.UiLoader()
-        lbl01=QtGui.QLabel("Global coords",self.form)
-        lbl02 = QtGui.QLabel("Local Vector", self.form)
+        self.form = QtGui.QWidget()
+        grid = QtGui.QGridLayout(self.form)
 
-        lbl1 = QtGui.QLabel("Origin X",self.form)
-        self.oX = loader.createWidget("Gui::InputField")
-        lbl2 = QtGui.QLabel("Origin Y", self.form)
-        self.oY = loader.createWidget("Gui::InputField")
-        lbl3 = QtGui.QLabel("Origin Z", self.form)
-        self.oZ = loader.createWidget("Gui::InputField")
-        lbl4 = QtGui.QLabel("End X", self.form)
-        self.eX = loader.createWidget("Gui::InputField")
-        lbl5 = QtGui.QLabel("End Y", self.form)
-        self.eY = loader.createWidget("Gui::InputField")
+        ### COORDINATES CONTAINER ###
+        self.coords = WFrameDialogs.CoordinatesWidget()
+        grid.addWidget(self.coords, 0, 0, 1, 1)
 
-        self.form.gridCoords.addWidget(lbl01,0,0,1,1)
-        self.form.gridCoords.addWidget(lbl02, 0, 2, 1, 1)
-        self.form.gridCoords.addWidget(lbl1, 1, 0, 1, 1)
-        self.form.gridCoords.addWidget(self.oX,1,1,1,1)
-        self.form.gridCoords.addWidget(lbl2, 2, 0, 1, 1)
-        self.form.gridCoords.addWidget(self.oY, 2, 1, 1, 1)
-        self.form.gridCoords.addWidget(lbl3, 3, 0, 1, 1)
-        self.form.gridCoords.addWidget(self.oZ, 3, 1, 1, 1)
-        self.form.gridCoords.addWidget(lbl4, 1, 2, 1, 1)
-        self.form.gridCoords.addWidget(self.eX, 1, 3, 1, 1)
-        self.form.gridCoords.addWidget(lbl5, 2, 2, 1, 1)
-        self.form.gridCoords.addWidget(self.eY, 2, 3, 1, 1)
+        QtCore.QObject.connect(self.coords.oX, QtCore.SIGNAL("valueChanged(double)"), self.setoX)
+        QtCore.QObject.connect(self.coords.oY, QtCore.SIGNAL("valueChanged(double)"), self.setoY)
+        QtCore.QObject.connect(self.coords.oZ, QtCore.SIGNAL("valueChanged(double)"), self.setoZ)
+        QtCore.QObject.connect(self.coords.eX, QtCore.SIGNAL("valueChanged(double)"), self.seteX)
+        QtCore.QObject.connect(self.coords.eY, QtCore.SIGNAL("valueChanged(double)"), self.seteY)
 
-        lbl7=QtGui.QLabel("Width",self.form)
-        self.width=loader.createWidget("Gui::InputField")
-        self.form.gridDim.addWidget(lbl7, 0, 0, 1, 1)
-        self.form.gridDim.addWidget(self.width,0,1,1,1)
-        lbl8 = QtGui.QLabel("Height", self.form)
-        self.height = loader.createWidget("Gui::InputField")
-        self.form.gridDim.addWidget(lbl8, 1, 0, 1, 1)
-        self.form.gridDim.addWidget(self.height, 1, 1, 1, 1)
-        self.lbl_Length = QtGui.QLabel("Length", self.form)
-        self.length = loader.createWidget("Gui::InputField")
-        self.form.gridDim.addWidget(self.lbl_Length, 2, 0, 1, 1)
-        self.form.gridDim.addWidget(self.length, 2, 1, 1, 1)
+        ### DIMENSION CONTAINER ###
+        self.dim = WFrameDialogs.DimensionsWidget()
+        self.dim.width.setText(FreeCAD.Units.Quantity(self.w, FreeCAD.Units.Length).UserString)
+        self.dim.height.setText(FreeCAD.Units.Quantity(self.h, FreeCAD.Units.Length).UserString)
+        grid.addWidget(self.dim, 1, 0, 1, 1)
 
-        self.beam = Beam(BeamDef())
-        self.beamdef = self.beam.beamdef
+        QtCore.QObject.connect(self.dim.width, QtCore.SIGNAL("valueChanged(double)"), self.setWidth)
+        QtCore.QObject.connect(self.dim.height, QtCore.SIGNAL("valueChanged(double)"), self.setHeight)
+        QtCore.QObject.connect(self.dim.length, QtCore.SIGNAL("valueChanged(double)"), self.setLength)
+        self.dim.lbl_length.setVisible(False)
+        self.dim.length.setVisible(False)
 
-        self.points=[]
-        self.vecInLocalCoords = Base.Vector(0,0,0)
-        self.pt=None
-        self.lastpoint=None
-        self.isLength=False
-        self.h=self.beamdef.height
-        self.w=self.beamdef.width
+        ### DESCRIPTION CONTAINER ###
+        self.desc = WFrameDialogs.DescriptionWidget(orientations=self.beam.orientationTypes)
+        grid.addWidget(self.desc, 2, 0, 1, 1)
+        QtCore.QObject.connect(self.desc.cb_Orientation, QtCore.SIGNAL("currentIndexChanged(int)"), self.sectionChanged)
+        QtCore.QObject.connect(self.desc.cb_Name, QtCore.SIGNAL("currentIndexChanged(int)"), self.redraw)
 
-        self.form.cb_Orientation.addItems(self.beamdef.getOrientationTypes())
-        self.form.cb_Name.addItems(WFrameAttributes.getNames())
-        self.lbl_Length.setVisible(False)
-        self.length.setVisible(False)
+        ### INSERTION POINT CONTAINER ###
+        self.inspoint = WFrameDialogs.InsertionPointWidget()
+        grid.addWidget(self.inspoint, 4, 0, 1, 1)
 
-        #init default values
-        self.width.setText(FreeCAD.Units.Quantity(self.w,FreeCAD.Units.Length).UserString)
-        self.height.setText(FreeCAD.Units.Quantity(self.h, FreeCAD.Units.Length).UserString)
+        QtCore.QObject.connect(self.inspoint.rb_1, QtCore.SIGNAL("clicked()"), self.offset)
+        QtCore.QObject.connect(self.inspoint.rb_2, QtCore.SIGNAL("clicked()"), self.offset)
+        QtCore.QObject.connect(self.inspoint.rb_3, QtCore.SIGNAL("clicked()"), self.offset)
+        QtCore.QObject.connect(self.inspoint.rb_4, QtCore.SIGNAL("clicked()"), self.offset)
+        QtCore.QObject.connect(self.inspoint.rb_5, QtCore.SIGNAL("clicked()"), self.offset)
+        QtCore.QObject.connect(self.inspoint.rb_6, QtCore.SIGNAL("clicked()"), self.offset)
+        QtCore.QObject.connect(self.inspoint.rb_7, QtCore.SIGNAL("clicked()"), self.offset)
+        QtCore.QObject.connect(self.inspoint.rb_8, QtCore.SIGNAL("clicked()"), self.offset)
+        QtCore.QObject.connect(self.inspoint.rb_9, QtCore.SIGNAL("clicked()"), self.offset)
 
-        self.form.cb_Name.setCurrentIndex(1)
+        # reimplement getPoint from draft, without Dialog taskbox
 
-        #connections
-        self.form.cb_Orientation.currentIndexChanged.connect(self.sectionChanged)
-        self.form.cb_Name.currentIndexChanged.connect(self.redraw)
-        QtCore.QObject.connect(self.width, QtCore.SIGNAL("valueChanged(double)"), self.setWidth)
-        QtCore.QObject.connect(self.height, QtCore.SIGNAL("valueChanged(double)"), self.setHeight)
-        QtCore.QObject.connect(self.length, QtCore.SIGNAL("valueChanged(double)"), self.setLength)
-
-        self.form.rb_1.clicked.connect(self.offset)
-        self.form.rb_2.clicked.connect(self.offset)
-        self.form.rb_3.clicked.connect(self.offset)
-        self.form.rb_4.clicked.connect(self.offset)
-        self.form.rb_5.clicked.connect(self.offset)
-        self.form.rb_6.clicked.connect(self.offset)
-        self.form.rb_7.clicked.connect(self.offset)
-        self.form.rb_8.clicked.connect(self.offset)
-        self.form.rb_9.clicked.connect(self.offset)
-        QtCore.QObject.connect(self.oX, QtCore.SIGNAL("valueChanged(double)"), self.setoX)
-        QtCore.QObject.connect(self.oY, QtCore.SIGNAL("valueChanged(double)"), self.setoY)
-        QtCore.QObject.connect(self.oZ, QtCore.SIGNAL("valueChanged(double)"), self.setoZ)
-        QtCore.QObject.connect(self.eX, QtCore.SIGNAL("valueChanged(double)"), self.seteX)
-        QtCore.QObject.connect(self.eY, QtCore.SIGNAL("valueChanged(double)"), self.seteY)
-
-        #reimplement getPoint from draft, without Dialog taskbox
-
-        #start events
-        self.curview=FreeCADGui.activeDocument().activeView()
-        self.callbackClick = self.curview.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.mouseClick)
+        # start events
+        self.curview = FreeCADGui.activeDocument().activeView()
+        self.callbackClick = self.curview.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(),
+                                                               self.mouseClick)
         self.callbackMove = self.curview.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.mouseMove)
-        self.callbackKeys =None
-        self.enterkeyCode= 65293
-        self.returnKeyCode=65421
+        self.callbackKeys = None
+        self.enterkeyCode = 65293
+        self.returnKeyCode = 65421
 
-    def setoX(self,val):
+    def setoX(self, val):
         if len(self.points) > 0:
             if not val == self.points[0][0]:
                 self.points[0][0] = val
             self.redraw()
 
-    def setoY(self,val):
+    def setoY(self, val):
         if len(self.points) > 0:
             if not val == self.points[0][1]:
-                self.points[0][1]=val
+                self.points[0][1] = val
             self.redraw()
 
-    def setoZ(self,val):
+    def setoZ(self, val):
         if len(self.points) > 0:
             if not val == self.points[0][2]:
-                self.points[0][2]=val
+                self.points[0][2] = val
             self.redraw()
 
-    def seteX(self,val):
+    def seteX(self, val):
         if len(self.points) > 1:
             if not val == self.vecInLocalCoords[0]:
-                self.vecInLocalCoords[0]=val
+                self.vecInLocalCoords[0] = val
                 # convert local vector in global point
                 origInLocalCoords = FreeCAD.DraftWorkingPlane.getLocalCoords(self.points[0])
                 vecToGlobalCoords = self.vecInLocalCoords + origInLocalCoords
                 vecToGlobalCoords = FreeCAD.DraftWorkingPlane.getGlobalCoords(vecToGlobalCoords)
-                self.points[1]=vecToGlobalCoords
+                self.points[1] = vecToGlobalCoords
                 self.redraw()
 
-    def seteY(self,val):
+    def seteY(self, val):
         if len(self.points) > 1:
             if not val == self.vecInLocalCoords[1]:
-                self.vecInLocalCoords[1]=val
+                self.vecInLocalCoords[1] = val
                 # convert local vector in global point
                 origInLocalCoords = FreeCAD.DraftWorkingPlane.getLocalCoords(self.points[0])
                 vecToGlobalCoords = self.vecInLocalCoords + origInLocalCoords
                 vecToGlobalCoords = FreeCAD.DraftWorkingPlane.getGlobalCoords(vecToGlobalCoords)
-                self.points[1]=vecToGlobalCoords
+                self.points[1] = vecToGlobalCoords
                 self.redraw()
 
-    def setWidth(self,val):
-        self.beamdef.width=val
+    def setWidth(self, val):
+        self.beam.width = val
         self.sectionChanged()
 
-    def setHeight(self,val):
-        self.beamdef.height=val
+    def setHeight(self, val):
+        self.beam.height = val
         self.sectionChanged()
 
-    def setLength(self,val):
-        self.beamdef.length=val
+    def setLength(self, val):
+        self.beam.length = val
         self.redraw()
 
-
-
     def closeEvents(self):
-        #remove all events
+        # remove all events
         if self.callbackClick:
             self.curview.removeEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.callbackClick)
         if self.callbackMove:
@@ -263,90 +220,87 @@ class Ui_Definition(QtGui.QWidget):
         self.callbackClick = None
         self.callbackMove = None
 
-    def keys(self,event_cb):
-        event=event_cb.getEvent()
+    def keys(self, event_cb):
+        event = event_cb.getEvent()
         if event.getState() == coin.SoKeyboardEvent.DOWN:
             if (event.getKey() == self.returnKeyCode) or (event.getKey() == self.enterkeyCode):
                 self.accept()
                 return
 
-            if event.getPrintableCharacter() == "1": self.form.rb_1.setChecked(True)
-            if event.getPrintableCharacter() == "2": self.form.rb_2.setChecked(True)
-            if event.getPrintableCharacter() == "3": self.form.rb_3.setChecked(True)
-            if event.getPrintableCharacter() == "4": self.form.rb_4.setChecked(True)
-            if event.getPrintableCharacter() == "5": self.form.rb_5.setChecked(True)
-            if event.getPrintableCharacter() == "6": self.form.rb_6.setChecked(True)
-            if event.getPrintableCharacter() == "7": self.form.rb_7.setChecked(True)
-            if event.getPrintableCharacter() == "8": self.form.rb_8.setChecked(True)
-            if event.getPrintableCharacter() == "9": self.form.rb_9.setChecked(True)
+            if event.getPrintableCharacter() == "1": self.inspoint.rb_1.setChecked(True)
+            if event.getPrintableCharacter() == "2": self.inspoint.rb_2.setChecked(True)
+            if event.getPrintableCharacter() == "3": self.inspoint.rb_3.setChecked(True)
+            if event.getPrintableCharacter() == "4": self.inspoint.rb_4.setChecked(True)
+            if event.getPrintableCharacter() == "5": self.inspoint.rb_5.setChecked(True)
+            if event.getPrintableCharacter() == "6": self.inspoint.rb_6.setChecked(True)
+            if event.getPrintableCharacter() == "7": self.inspoint.rb_7.setChecked(True)
+            if event.getPrintableCharacter() == "8": self.inspoint.rb_8.setChecked(True)
+            if event.getPrintableCharacter() == "9": self.inspoint.rb_9.setChecked(True)
             self.offset()
 
-    #retreive point clicked with snap
-    def mouseClick(self,event_cb):
+    # retreive point clicked with snap
+    def mouseClick(self, event_cb):
 
         event = event_cb.getEvent()
         if event.getButton() == 1:
             if event.getState() == coin.SoMouseButtonEvent.DOWN:
-                #start point
-                if len(self.points) == 0 :
+                # start point
+                if len(self.points) == 0:
                     self.points.append(self.pt)
-                    self.oX.setText(str(round(self.pt[0],2)))
-                    self.oY.setText(str(round(self.pt[1], 2)))
-                    self.oZ.setText(str(round(self.pt[2], 2)))
-                    self.lastpoint=self.pt
-                #end point
+                    self.coords.oX.setText(str(round(self.pt[0], 2)))
+                    self.coords.oY.setText(str(round(self.pt[1], 2)))
+                    self.coords.oZ.setText(str(round(self.pt[2], 2)))
+                    self.lastpoint = self.pt
+                # end point
                 elif len(self.points) == 1:
-                    #calculate the local vector
-                    origInLocalCoords=FreeCAD.DraftWorkingPlane.getLocalCoords(self.points[0])
-                    self.vecInLocalCoords=FreeCAD.DraftWorkingPlane.getLocalCoords(self.pt)
+                    # calculate the local vector
+                    origInLocalCoords = FreeCAD.DraftWorkingPlane.getLocalCoords(self.points[0])
+                    self.vecInLocalCoords = FreeCAD.DraftWorkingPlane.getLocalCoords(self.pt)
                     self.vecInLocalCoords = self.vecInLocalCoords - origInLocalCoords
-                    self.eX.setText(str(round(self.vecInLocalCoords[0], 2)))
-                    self.eY.setText(str(round(self.vecInLocalCoords[1], 2)))
-
+                    self.coords.eX.setText(str(round(self.vecInLocalCoords[0], 2)))
+                    self.coords.eY.setText(str(round(self.vecInLocalCoords[1], 2)))
 
                     self.closeEvents()
                     self.points.append(self.pt)
                     FreeCADGui.Snapper.off()
-                    #start keyboard events
-                    self.callbackKeys = self.curview.addEventCallbackPivy(coin.SoKeyboardEvent.getClassTypeId(),self.keys)
+                    # start keyboard events
+                    self.callbackKeys = self.curview.addEventCallbackPivy(coin.SoKeyboardEvent.getClassTypeId(),
+                                                                          self.keys)
                     self.redraw()
 
+    # mouse move to show sanp points
+    def mouseMove(self, event_cb):
+        event = event_cb.getEvent()
+        mousepos = event.getPosition()
+        ctrl = event.wasCtrlDown()
+        shift = event.wasShiftDown()
 
-    #mouse move to show sanp points
-    def mouseMove(self,event_cb):
-        event=event_cb.getEvent()
-        mousepos=event.getPosition()
-        ctrl=event.wasCtrlDown()
-        shift=event.wasShiftDown()
-
-        self.pt = FreeCADGui.Snapper.snap(mousepos, lastpoint=self.lastpoint,active=ctrl,constrain=shift)
+        self.pt = FreeCADGui.Snapper.snap(mousepos, lastpoint=self.lastpoint, active=ctrl, constrain=shift)
         if hasattr(FreeCAD, "DraftWorkingPlane"):
-            FreeCADGui.draftToolBar.displayPoint(self.pt, None, plane=FreeCAD.DraftWorkingPlane,mask=FreeCADGui.Snapper.affinity)
-
+            FreeCADGui.draftToolBar.displayPoint(self.pt, None, plane=FreeCAD.DraftWorkingPlane,
+                                                 mask=FreeCADGui.Snapper.affinity)
 
     def sectionChanged(self):
-        self.h = float(self.beamdef.height)
-        self.w = float(self.beamdef.width)
+        self.h = float(self.beam.height)
+        self.w = float(self.beam.width)
 
-        #if cut view
-        print("showLength",self.form.cb_Orientation.currentIndex())
-        if self.form.cb_Orientation.currentIndex() == 2:
-            self.length.setVisible(True)
-            self.lbl_Length.setVisible(True)
-            self.length.setText(FreeCAD.Units.Quantity(1000, FreeCAD.Units.Length).UserString)
-            self.isLength=True
+        # if cut view
+        if self.desc.cb_Orientation.currentIndex() == 2:
+            self.dim.length.setVisible(True)
+            self.dim.lbl_length.setVisible(True)
+            self.dim.length.setText(FreeCAD.Units.Quantity(1000, FreeCAD.Units.Length).UserString)
+            self.isLength = True
 
         else:
-            if self.form.cb_Orientation.currentIndex() == 1:
-                self.w = float(self.beamdef.height)
-                self.h = float(self.beamdef.width)
-            self.length.setVisible(False)
-            self.lbl_Length.setVisible(False)
+            if self.desc.cb_Orientation.currentIndex() == 1:
+                self.w = float(self.beam.height)
+                self.h = float(self.beam.width)
+            self.dim.length.setVisible(False)
+            self.dim.lbl_length.setVisible(False)
             self.beam.length = ""
-            self.isLength=False
-        self.form.rb_5.setChecked(True)
+            self.isLength = False
+        self.inspoint.rb_5.setChecked(True)
         self.redraw()
-
 
     def accept(self):
         self.beam.shadowToObject()
@@ -357,190 +311,101 @@ class Ui_Definition(QtGui.QWidget):
             self.beam.delete()
         self.close()
 
-    def close(self,rejected=False):
+    def close(self, rejected=False):
         self.closeEvents()
         FreeCADGui.Control.closeDialog()
         if rejected:
             if self.beam:
                 self.beam.delete()
 
-
-
     def offset(self):
-        #TODO dashed and dashdot line style doesn't work properly
+        if self.inspoint.rb_1.isChecked():
+            pos = 1
+        elif self.inspoint.rb_2.isChecked():
+            pos = 2
+        elif self.inspoint.rb_3.isChecked():
+            pos = 3
+        elif self.inspoint.rb_4.isChecked():
+            pos = 4
+        elif self.inspoint.rb_5.isChecked():
+            pos = 5
+        elif self.inspoint.rb_6.isChecked():
+            pos = 6
+        elif self.inspoint.rb_7.isChecked():
+            pos = 7
+        elif self.inspoint.rb_8.isChecked():
+            pos = 8
+        elif self.inspoint.rb_9.isChecked():
+            pos = 9
 
-        if self.form.rb_1.isChecked():
-            if self.form.cb_Orientation.currentIndex() == 2:
-                self.beam.setOffset(Base.Vector(-self.w / 2, -self.h / 2, 0))
-            else:
-                self.beam.setOffset(Base.Vector(0, -self.h / 2, -self.w / 2))
-            self.beam.setSolid()
-
-        elif self.form.rb_2.isChecked():
-            if self.form.cb_Orientation.currentIndex() == 2:
-                self.beam.setOffset(Base.Vector(0, -self.h / 2, 0))
-                self.beam.setSolid()
-            else:
-                self.beam.setOffset(Base.Vector(0, -self.h / 2, 0))
-                #self.beam.setDashDot()
-
-        elif self.form.rb_3.isChecked():
-            if self.form.cb_Orientation.currentIndex() == 2:
-                self.beam.setOffset(Base.Vector(self.w / 2, -self.h / 2, 0))
-                self.beam.setSolid()
-            else:
-                self.beam.setOffset(Base.Vector(0, -self.h / 2, self.w / 2))
-                #self.beam.setDashed()
-
-        elif self.form.rb_4.isChecked():
-            if self.form.cb_Orientation.currentIndex() == 2:
-                self.beam.setOffset(Base.Vector(-self.w / 2, 0, 0))
-                self.beam.setSolid()
-            else:
-                self.beam.setOffset(Base.Vector(0, 0, -self.w / 2))
-                self.beam.setSolid()
-
-        elif self.form.rb_5.isChecked():
-            if self.form.cb_Orientation.currentIndex() == 2:
-                self.beam.setOffset(Base.Vector(0, 0, 0))
-                self.beam.setSolid()
-            else:
-                self.beam.setOffset(Base.Vector(0, 0, 0))
-                #self.beam.setDashDot()
-
-        elif self.form.rb_6.isChecked():
-            if self.form.cb_Orientation.currentIndex() == 2:
-                self.beam.setOffset(Base.Vector(self.w / 2, 0, 0))
-                self.beam.setSolid()
-            else:
-                self.beam.setOffset(Base.Vector(0, 0, self.w / 2))
-                #self.beam.setDashed()
-
-        elif self.form.rb_7.isChecked():
-            if self.form.cb_Orientation.currentIndex() == 2:
-                self.beam.setOffset(Base.Vector(-self.w / 2, self.h / 2, 0))
-                self.beam.setSolid()
-            else:
-                self.beam.setOffset(Base.Vector(0, self.h / 2, -self.w / 2))
-                self.beam.setSolid()
-
-        elif self.form.rb_8.isChecked():
-            if self.form.cb_Orientation.currentIndex() == 2:
-                self.beam.setOffset(Base.Vector(0, self.h / 2, 0))
-                self.beam.setSolid()
-            else:
-                self.beam.setOffset(Base.Vector(0, self.h / 2, 0))
-                #self.beam.setDashDot()
-
-        elif self.form.rb_9.isChecked():
-            if self.form.cb_Orientation.currentIndex() == 2:
-                self.beam.setOffset(Base.Vector(self.w / 2, self.h / 2, 0))
-            else:
-                self.beam.setOffset(Base.Vector(0, self.h / 2, self.w / 2))
-                #self.beam.setDashed()
+        pt = WFrameUtils.offset(height=self.h, width=self.w, orientation=self.beam.orientation, position=pos)
+        self.beam.setOffset(off=pt)
         FreeCADGui.Selection.clearSelection()
 
     def redraw(self):
-        #print("redraw")
-
-        if len(self.points) == 2 :
-            self.beamdef.orientation = self.form.cb_Orientation.currentText()
-            self.beamdef.name = self.form.cb_Name.currentText()
+        if len(self.points) == 2:
+            self.beam.orientation = self.desc.cb_Orientation.currentIndex()
+            self.beam.name = self.desc.cb_Name.currentText()
             self.beam.delete()
-            self.beam.beamdef=self.beamdef
-            self.beam.create(startPoint=self.points[0], endPoint=self.points[1], isShadow=True)
+            self.beam.create(start=self.points[0], end=self.points[1], isShadow=True)
             self.offset()
 
 
-
-
-
-
-class BeamDef:
+class Beam():
     '''
-    Class for defining beam object
-    orientation : how the beam is viewed in a 2D plan
+    Create a beam object using makeStructure from Arch
+    create: create the beam in shadow mode(transparence)
+    delete: undo and delete the beam
+    shadowtoObject: change transparence to 0
+    setoffset : change the insertion point of the beam
     '''
 
     def __init__(self):
-        self.name=WFrameAttributes.getNames()[0]
-        self.type=WFrameAttributes.getTypes()[0]
-        self.width=45
-        self.height=145
-        self.length=1000
-        self.orientation=""
-        self.viewTypes=["face","top","cut"]
-        #the default view type
-        self.view=self.viewTypes[0]
-
-#getters and setters
-    def name(self,n):
-        if n:self.name:n
-        return self.name
-
-    def type(self,t):
-        if t:self.type=t
-        return self.type
-
-    def preset(self,p):
-        if p:self.preset:p
-        return self.preset
-
-    def height(self,h):
-        if h:self.height=h
-        return  self.height
-
-    def width(self,w):
-        if w:self.w=w
-        return self.width
-
-    def orientation(self,o):
-        if o:self.orientation=o
-        return self.orientation
-
-    def getOrientationTypes(self):
-        return self.viewTypes
-
-    def length(self, l):
-        if l:self.length=l
-        return self.length
-
-
-
-class Beam():
-    def __init__(self,beamdef):
         print("##Beam##\r\n")
-        self.beamdef=beamdef
+        self.name = WFrameAttributes.getNames()[0]
+        self.type = WFrameAttributes.getTypes()[0]
+        self.width = 45
+        self.height = 145
+        self.length = 1000
+        self.orientationTypes = ["face", "top", "cut"]
+        self.orientation = 0
+        self.isShadow=True
+        self.currentInsPoint=Base.Vector(0,0,0)
+        self.points = [Base.Vector(0, 0, 0), Base.Vector(0, 0, 0)]
         self.angle = 0
-        self.evalrot = self.beamdef.getOrientationTypes()
         self.structure = None
+
     def delete(self):
         if self.structure:
             self.structure.Document.removeObject(self.structure.Name)
-            self.structure=None
+            self.structure = None
 
+    def create(self, structure=None, start=Base.Vector(0, 0, 0), end=Base.Vector(0, 0, 0), isShadow=False):
+        '''create(self, structure=None, startPoint=Base.Vector(0, 0, 0), endPoint=Base.Vector(0, 0, 0), isShadow=False)
+        create the beam
+        structure : copy of an existant beam
+        start : the origin point in global coords
+        end : the end point in global coords
+        isShadow: transparent mode
+        '''
+        self.points = [start, end]
+        self.isShadow = isShadow
+        self.currentInsPoint = self.points[0]
 
-    def create(self,structure=None,startPoint=Base.Vector(0,0,0),endPoint=Base.Vector(0,0,0),isShadow=False):
-        self.points = [startPoint, endPoint]
-        self.isShadow=isShadow
-        self.currentInsPoint=self.points[0]
-
-        #set length of the beam
-        if not self.evalrot[2] in self.beamdef.orientation:
-            self.beamdef.length= DraftVecUtils.dist(self.points[0],self.points[1])
+        # set length of the beam
+        if not self.orientation == 2:
+            self.length = DraftVecUtils.dist(self.points[0], self.points[1])
 
         # Beam creation
         if self.structure:
             self.structure = structure
         else:
-            self.structure = Arch.makeStructure(None, self.beamdef.length, self.beamdef.width, self.beamdef.height)
-
+            self.structure = Arch.makeStructure(None, self.length, self.width, self.height)
 
         self.setAttributes()
         self.setOrientation()
         self.setRotations()
         return self
-
 
     def shadowToObject(self):
         if self.structure:
@@ -559,17 +424,15 @@ class Beam():
     def setDashed(self):
         self.structure.ViewObject.DrawStyle = "Dashed"
 
-
-
     def setAttributes(self):
         self.structure.IfcType = "Beam"
         self.structure.Tag = "Wood-Frame"
-        self.structure.Label = self.beamdef.name
+        self.structure.Label = self.name
 
         # set specific Attributes for WFrame
         WFrameAttributes.insertAttr(self.structure)
-        self.structure.WFName = self.beamdef.name
-        self.structure.Type = self.beamdef.type
+        self.structure.WFName = self.name
+        self.structure.Type = self.type
 
         # set view properties
         r = (1 / 255) * 229
@@ -579,18 +442,15 @@ class Beam():
         if self.isShadow:
             self.objectToShadow()
 
-
-
-    def setOffset(self,off=Base.Vector(0,0,0)):
-        #function used by setoffsetnumpad
-        orig=self.points[0]
-        orig=FreeCAD.DraftWorkingPlane.getLocalCoords(orig)
-        vector=FreeCAD.Vector(orig[0]-off[0],orig[1]-off[1],orig[2]-off[2])
-        vector= FreeCAD.DraftWorkingPlane.getGlobalCoords(vector)
-        self.currentInsPoint=vector
+    def setOffset(self, off=Base.Vector(0, 0, 0)):
+        # function used by setoffsetnumpad
+        orig = self.points[0]
+        orig = FreeCAD.DraftWorkingPlane.getLocalCoords(orig)
+        vector = FreeCAD.Vector(orig[0] - off[0], orig[1] - off[1], orig[2] - off[2])
+        vector = FreeCAD.DraftWorkingPlane.getGlobalCoords(vector)
+        self.currentInsPoint = vector
         self.setOrientation()
         self.setRotations()
-
 
     def setOrientation(self):
 
@@ -600,36 +460,28 @@ class Beam():
 
         # Initialize placement
         # set the origin point
-        self.initialPlacement = FreeCAD.Base.Placement(self.currentInsPoint, FreeCAD.Rotation(0, 0, 0),FreeCAD.Vector(0, 0, 0))
+        self.initialPlacement = FreeCAD.Base.Placement(self.currentInsPoint, FreeCAD.Rotation(0, 0, 0),
+                                                       FreeCAD.Vector(0, 0, 0))
         # Rotate beam on workingplane
 
         self.initialPlacement = self.initialPlacement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0), self.rotPlan)
         self.structure.Placement = self.initialPlacement
 
         # beam defaultview is from face
-        self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),FreeCAD.Rotation(0, 0, -90))
+        self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),
+                                                                                     FreeCAD.Rotation(0, 0, -90))
         # beam up view
-        if self.evalrot[1] in self.beamdef.orientation:
-            self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),FreeCAD.Rotation(0, 0, 90))
+        if self.orientation == 1:
+            self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),
+                                                                                         FreeCAD.Rotation(0, 0, 90))
         # beam cut view
-        elif self.evalrot[2] in self.beamdef.orientation:
-            self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),FreeCAD.Rotation(90, 0, 0))
+        elif self.orientation == 2:
+            self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),
+                                                                                         FreeCAD.Rotation(90, 0, 0))
 
         FreeCAD.ActiveDocument.recompute()
 
     def setRotations(self):
-        '''set Angle on the current workingplane'''
-
-        self.vecAngle = FreeCAD.Vector(0, 0, 0)
-        self.vecAngle[0] = self.points[1][0] - self.points[0][0]
-        self.vecAngle[1] = self.points[1][1] - self.points[0][1]
-        self.vecAngle[2] = self.points[1][2] - self.points[0][2]
-
-        # along workingplane normal
-        self.angle= DraftVecUtils.angle(self.wplan.u,self.vecAngle,self.wplan.axis)
-        self.angle = degrees(self.angle)
-
-        #rotate in the current working plane
-        Draft.rotate(self.structure, self.angle, center=self.points[0], axis=self.wplan.getNormal(), copy=False)
+        self.structure=WFrameUtils.setRotations(self.structure,points=self.points,wplan=self.wplan)
         FreeCAD.ActiveDocument.recompute()
 
