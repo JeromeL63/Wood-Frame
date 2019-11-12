@@ -37,7 +37,7 @@ class WFrameAlignViewWPlane():
 
     def GetResources(self):
         return {'Pixmap': __dir__ + '/Resources/icons/AlignViewWPlane.svg',
-                'Accel': "W,B",
+                'Accel': "W,A",
                 'MenuText': "WFrameAlignViewWPlan",
                 'ToolTip': "Align camera view on the current workingplane"}
 
