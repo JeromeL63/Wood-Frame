@@ -31,6 +31,7 @@ __author__ = "Jerome Laverroux"
 __url__ = "http://www.freecadweb.org"
 
 import FreeCAD
+import Draft
 from FreeCAD import Base
 import os
 from math import *
@@ -62,6 +63,7 @@ class WFCopy():
     def Activated(self):
         self.tracker = DraftTrackers.lineTracker()
         self.tracker.on()
+        self.objList=FreeCADGui.Selection.getSelection()
         FreeCADGui.Snapper.getPoint(callback=self.getBasePoint,title="Base Point")
 
 
@@ -76,7 +78,7 @@ class WFCopy():
         if point == None:
             self.tracker.finalize()
         else:
-            copySelection(basePoint=self.basePoint,endPoint=point)
+            copySelection(base=self.basePoint,end=point,objlist=self.objList)
 
 
     def update(self, point, info):
@@ -118,56 +120,24 @@ class WFStretch():
             return False
 
 
-def copySelection(basePoint=FreeCAD.Vector(0, 0, 0), endPoint=FreeCAD.Vector(0, 0, 0), objlist=None, number=1):
+def copySelection(base=FreeCAD.Vector(0, 0, 0), end=FreeCAD.Vector(0, 0, 0), objlist=None, number=1):
     '''
     Function to copy objects
 
-    :param basePoint: base point of displacement vector
-    :param endPoint:  end point of displacement vector
+    :param base: base point of displacement vector
+    :param end:  end point of displacement vector
     :param objlist: List of objects
     :param number: Number of copies
     '''
-    for i in range(0, number):
-        print(i)
-        initial = []
-        # save all objects present in file
-        listobj = FreeCAD.ActiveDocument.Objects
-        for lbl in listobj:
-            initial.append(lbl.Label)
+    vec = Base.Vector(0, 0, 0)
+    vec.x = end.x - base.x
+    vec.y = end.y - base.y
+    vec.z = end.z - base.z
 
-        print(initial)
-        FreeCADGui.runCommand('Std_Copy', 0)
-        FreeCADGui.runCommand('Std_Paste', 0)
-        after = FreeCAD.ActiveDocument.Objects
-        lst = []
-        # search diff between before and after copy
-        for lbl in after:
-            if not lbl.Label in initial and not "CutVolume" in lbl.Label:
-                # TODO cut volume isn't applied but is in right place :'(
-                lst.append(lbl)
-
-        FreeCADGui.Selection.clearSelection()
-
-        for obj in lst:
-            FreeCADGui.Selection.addSelection(obj)
-        objlist = FreeCADGui.Selection.getSelection()
-
-        translateSelection(basePoint, endPoint, objlist)
-
-
-def translateSelection(basePoint,endPoint,objlist=None):
-    if objlist :
-        # now get vector between two points
-        vec = FreeCAD.Vector(endPoint[0] - basePoint[0], endPoint[1] - basePoint[1], endPoint[2] - basePoint[2])
-        print(vec)
-        FreeCADGui.Selection.clearSelection()
-        for obj in objlist:
-            # and then translate Object Base point with the given vector
-            origin = obj.Placement.Base
-            print("origin",origin,"name",obj.Label)
-            finalPoint = FreeCAD.Vector(origin[0] + vec[0], origin[1] + vec[1], origin[2] + vec[2])
-            obj.Placement.Base = finalPoint
-            FreeCADGui.Selection.addSelection(obj)
+    if objlist:
+        print ("launch copies")
+        for i in range(0, number):
+           objlist = Draft.move(objlist, vec, copy=True)
         FreeCAD.ActiveDocument.recompute()
 
 
@@ -259,6 +229,9 @@ def offset(height,width,orientation=0,position=5):
             out=Base.Vector(0, height / 2, width / 2)
             #self.beam.setDashed()
     return out
+
+
+
 
 def setRotations(structure=None,points=[Base.Vector(0,0,0),Base.Vector(0,0,0)],wplan=None):
     '''Rotate structure by the given two points on the current workingplane wplan'''

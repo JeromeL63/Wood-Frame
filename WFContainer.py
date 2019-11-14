@@ -24,25 +24,58 @@
 #*   USA                                                                   *
 #*                                                                         *
 #*   Jerome Laverroux 2019                                                 *
-#***************************************************************************/ 
+#***************************************************************************/
 
 
-__title__="FreeCAD Wood Frame API"
+__title__="FreeCAD Wood Frame Container API"
 __author__ = "Jerome Laverroux"
 __url__ = "http://www.freecadweb.org"
 
+
 import FreeCAD
-import WFrameBeam,WFramePanel,WFrameList,WFrameAlignViewWPlane,WFrameAttributes
-import WFContainer,WFrameDialogs,WFrameUtils,WFDxfExport
+from FreeCAD import Base
 
 
-if FreeCAD.GuiUp:
-	import FreeCADGui
-	FreeCADGui.updateLocale()
+# function to draw container export bounding box
 
+class Container:
+    def __init__(self, name="Container"):
+        self.lst = []
+        self.min = Base.Vector(0, 0, 0)
+        self.max = Base.Vector(0, 0, 0)
+        self.name = name
+        self.bbox = None
 
+    def create(self, objlist):
+        self.lst = objlist
+        # calculate min point and max point
+        for obj in self.lst:
+            if hasattr(obj, "Shape"):
+                for verts in obj.Shape.Vertexes:
+                    if verts.X > self.max.x:
+                        self.max.x = verts.X
+                    elif verts.X < self.min.x:
+                        self.min.x = verts.X
 
+                    if verts.Y > self.max.y:
+                        self.max.y = verts.Y
+                    elif verts.Y < self.min.y:
+                        self.min.y = verts.Y
 
+                    if verts.Z > self.max.z:
+                        self.max.z = verts.Z
+                    elif verts.Z < self.min.z:
+                        self.min.z = verts.Z
 
-    
-    
+        self.bbox = FreeCAD.ActiveDocument.addObject("Part::Box", self.name)
+        self.bbox.Length = self.max.x - self.min.x
+        self.bbox.Width = self.max.y - self.min.y
+        self.bbox.Height = self.max.z - self.min.z
+        self.bbox.Placement = FreeCAD.Placement(self.min, FreeCAD.Rotation(0, 0, 0))
+        self.bbox.ViewObject.Transparency = 85
+        # self.bbox.ViewObject.DrawStyle = "Dashed"
+        FreeCAD.ActiveDocument.recompute()
+        return self.bbox
+
+    def getPoints(self):
+        return [self.min,self.max]
