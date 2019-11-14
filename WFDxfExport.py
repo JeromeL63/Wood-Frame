@@ -38,6 +38,9 @@ import FreeCAD
 from FreeCAD import Base
 import WFContainer
 import Draft
+import os
+
+__dir__ = os.path.dirname(FreeCAD.ActiveDocument.FileName)
 
 import TechDraw
 
@@ -256,5 +259,5 @@ class DxfExport:
 
     def save(self):
         # Save DXF document.
-        self.doc.saveas('/home/jerome/test.dxf')
+        self.doc.saveas(__dir__+'/test.dxf')
 
