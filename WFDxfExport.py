@@ -189,7 +189,6 @@ class DxfExport:
             corresplst = []
             notsplittedlst = []
             edgelist=self.shapesInLayers[layerName]
-            print("Color",layerName, len(edgelist), len(vizEdgeList))
             for ledge in edgelist :
                 for vedge in vizEdgeList :
                     if self.isOnEdge(vedge,ledge):
