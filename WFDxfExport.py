@@ -51,18 +51,15 @@ import TechDraw
 def removeView():
     if hasattr(FreeCAD.ActiveDocument, "View"):
         FreeCAD.ActiveDocument.removeObject("View")
-    print("view removed")
 
 def removePage():
     if hasattr(FreeCAD.ActiveDocument, "Page"):
         FreeCAD.ActiveDocument.removeObject("Page")
-    print("page removed")
 
 def addView():
     if not hasattr(FreeCAD.ActiveDocument, "Page"):
         FreeCADGui.runCommand("TechDraw_NewPageDef")
     FreeCADGui.runCommand("TechDraw_NewView")
-    print("page and view added")
 
 class DxfExport:
     def __init__(self,selection):
@@ -155,7 +152,6 @@ class DxfExport:
         self.doc.layers.new("Unsorted", dxfattribs={'color': 13})
 
         for lay in self.layers:
-            print("Select shapes in layer:", lay.Label, "\n")
             group = lay.Group
             FreeCADGui.Selection.clearSelection()
             shapes = []
@@ -173,18 +169,15 @@ class DxfExport:
             dvp = FreeCAD.ActiveDocument.View
             lst = dvp.getVisibleEdges()
             # create a dictionnary of shapes by layers
-            print("create a dictionnary of shapes by layers:", lay.Label, "\n")
             self.shapesInLayers[lay.Label] = lst
 
         # now we have to compare generated Lines and remove lines which are totally
         for layerName, edgelist in self.shapesInLayers.items():
             lst = self.detectDoubles(edgelist, hidEdgeList)
-            #self.shapesInLayers[layerName] = lst
             # remove bounding box in layers
             bboxrem = self.detectDoubles(lst, self.bBoxEdges)
             #replace edgelist by filtered list
             self.shapesInLayers[layerName] = lst
-            print("compare :",layerName, len(self.shapesInLayers[layerName]))
             # we also remove doubles in Temp layer
             lst=self.detectDoubles(vizEdgeList,edgelist)
             #and boundingbox
