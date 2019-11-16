@@ -34,6 +34,7 @@ __url__ = "http://www.freecadweb.org"
 
 import FreeCAD
 from FreeCAD import Base
+import Draft
 
 
 # function to draw container export bounding box
@@ -45,6 +46,7 @@ class Container:
         self.max = Base.Vector(0, 0, 0)
         self.name = name
         self.bbox = None
+        self.lines =[]
 
     def create(self, objlist):
         self.lst = objlist
@@ -75,7 +77,25 @@ class Container:
         self.bbox.ViewObject.Transparency = 85
         # self.bbox.ViewObject.DrawStyle = "Dashed"
         FreeCAD.ActiveDocument.recompute()
+        # create lines which limit area
+        units = 100
+        for edge in self.bbox.Shape.Edges:
+            base = edge.Vertexes[0].Point
+            vec = Base.Vector(edge.Vertexes[1].X - base.x , edge.Vertexes[1].Y - base.y , edge.Vertexes[1].Z - base.z)
+            vec.multiply(1/100)
+            pt = Base.Vector(base.x + vec.x, base.y + vec.y,base.z + vec.z)
+            line = Draft.makeLine(base, pt)
+            self.lines.append(line)
+
+            vec = Base.Vector(base.x - edge.Vertexes[1].X, base.y - edge.Vertexes[1].Y,base.z - edge.Vertexes[1].Z)
+            vec.multiply(1 / 100)
+            pt = Base.Vector(edge.Vertexes[1].X + vec.x, edge.Vertexes[1].Y + vec.y, edge.Vertexes[1].Z + vec.z)
+            line = Draft.makeLine(edge.Vertexes[1].Point, pt)
+            self.lines.append(line)
+        FreeCAD.ActiveDocument.recompute()
+
         return self.bbox
 
     def getPoints(self):
         return [self.min,self.max]
+
