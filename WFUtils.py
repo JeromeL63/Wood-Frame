@@ -45,7 +45,48 @@ __dir__ = os.path.dirname(__file__)
 
 def QT_TRANSLATE_NOOP(ctx,txt): return txt # dummy function for the QT translator
 
+def alignView():
+    #function to align view to the current WorkingPlane
+    c = FreeCADGui.ActiveDocument.ActiveView.getCameraNode()
+    r = FreeCAD.DraftWorkingPlane.getRotation().Rotation.Q
+    c.orientation.setValue(r)
 
+def getTagList():
+    #function to retreive tags in document
+    taglist = []
+    for obj in FreeCAD.ActiveDocument.Objects :
+        if hasattr(obj,"Tag"):
+            if not obj.Tag in taglist:
+                taglist.append(str(obj.Tag))
+
+    return taglist
+
+
+def listFilter(items):
+    #Function to list selection by tag
+    doc = FreeCAD.ActiveDocument
+    objs = doc.Objects
+    objlist = []
+    for item in items :
+        if item == "Selection":
+            for obj in FreeCADGui.Selection.getSelection() :
+                objlist.append(obj)
+        taglist = getTagList()
+        for tag in taglist :
+            if item == tag :
+                for obj in objs:
+                    if FreeCADGui.ActiveDocument.getObject(obj.Name).Visibility:
+                        if hasattr(obj,"Proxy"):
+                            if hasattr(obj.Proxy,"Type"):
+                                if hasattr(obj,"Tag"):
+                                    if obj.Tag == item :
+                                        objlist.append(obj)
+
+    s = []
+    for i in objlist:
+        if i not in s:
+            s.append(i)
+    return s
 
 
 
@@ -141,8 +182,8 @@ def copySelection(base=FreeCAD.Vector(0, 0, 0), end=FreeCAD.Vector(0, 0, 0), obj
         FreeCAD.ActiveDocument.recompute()
 
 
-FreeCADGui.addCommand('WFCopy', WFCopy())
-FreeCADGui.addCommand('WFStretch', WFStretch())
+FreeCADGui.addCommand('WF_Copy', WFCopy())
+FreeCADGui.addCommand('WF_Stretch', WFStretch())
 
 
 

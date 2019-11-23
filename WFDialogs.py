@@ -24,7 +24,7 @@
 
 from PySide import QtGui,QtCore
 import FreeCADGui
-import WFrameAttributes
+import WFAttributes,WFUtils
 
 '''WFrameDialogs is a collection of Widgets used in WFrame'''
 
@@ -133,7 +133,7 @@ class DescriptionWidget(QtGui.QWidget):
 
         lbl_Name = QtGui.QLabel("Name")
         self.cb_Name = QtGui.QComboBox()
-        self.cb_Name.addItems(WFrameAttributes.getNames())
+        self.cb_Name.addItems(WFAttributes.getNames())
 
         gridDesc.addWidget(lbl_Orientation,0,0,1,1)
         gridDesc.addWidget(self.cb_Orientation,0,1,1,1)
@@ -172,3 +172,35 @@ class InsertionPointWidget(QtGui.QGroupBox):
 
         self.rb_5.setChecked(True)
 
+
+class ListSelectionWidget(QtGui.QWidget):
+    def __init__(self):
+        self.selection=[]
+        QtGui.QWidget.__init__(self)
+        grid = QtGui.QGridLayout(self)
+
+        self.lbl1 = QtGui.QLabel("Tag List")
+        self.taglistwidget = QtGui.QListWidget()
+        self.taglistwidget.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.taglistwidget.addItem("Selection")
+        self.taglistwidget.addItems(WFUtils.getTagList())
+        grid.addWidget(self.lbl1, 0, 0, 1, 1)
+        grid.addWidget(self.taglistwidget, 1, 0, 1, 1)
+
+        self.lbl2=QtGui.QLabel("Objects to be included")
+        self.filtered= QtGui.QListWidget()
+        grid.addWidget(self.lbl2,0,1,1,1)
+        grid.addWidget(self.filtered,1,1,1,1)
+
+        QtCore.QObject.connect(self.taglistwidget, QtCore.SIGNAL("itemSelectionChanged()"),self.makeFiltered)
+
+    def makeFiltered(self):
+        items = []
+        for item in self.taglistwidget.selectedItems():
+            items.append(item.text())
+        # print items
+        objlist = WFUtils.listFilter(items)
+        self.selection=objlist
+        self.filtered.clear()
+        for obj in objlist:
+            self.filtered.addItem(obj.Label)
