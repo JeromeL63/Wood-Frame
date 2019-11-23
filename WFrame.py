@@ -32,8 +32,8 @@ __author__ = "Jerome Laverroux"
 __url__ = "http://www.freecadweb.org"
 
 import FreeCAD
-import WFrameBeam,WFramePanel,WFrameList,WFrameAlignViewWPlane,WFrameAttributes
-import WFContainer,WFrameDialogs,WFrameUtils,WFDxfExport
+import WFBeam,WFPanel,WFList,WFAlignViewWPlane,WFAttributes
+import WFContainer,WFDialogs,WFUtils,WFDxfExport
 
 
 if FreeCAD.GuiUp:

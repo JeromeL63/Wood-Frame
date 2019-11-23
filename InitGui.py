@@ -226,14 +226,16 @@ static char *ferme[] = {
         
         self.wframe = ["Draft_Layer",
                        "WF_Beam","WF_Panel","Arch_CutPlane","Arch_CutLine",
-                       "WFCopy",
-                       "WFStretch",
-                       "WFrameList",
-                       "WFEditAttributes",
-                       "WFSelectByAttributes",
-                       "WFrameAlignViewWPlane"]
+                       "WF_Copy",
+                       "WF_Stretch",
+                       "WF_List",
+                       "WF_EditAttributes",
+                       "WF_SelectByAttributes",
+                       "WF_AlignViewWPlane"]
+        self.wframeExport =["WF_AddContainer","WF_AddView","WF_Export"]
 
-        self.appendToolbar("Wood Frame",self.wframe) # creates a new toolbar commands
+        self.appendToolbar("Wood Frame",self.wframe)
+        self.appendToolbar("Wood Frame Export", self.wframeExport)
         self.appendMenu("Wood Frame",self.wframe) # creates a new menu
 
        # self.appendMenu(["An existing Menu","My submenu"],self.list) # appends a submenu to an existing menu
