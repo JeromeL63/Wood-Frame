@@ -28,7 +28,7 @@ import FreeCAD
 import ArchComponent,Draft
 import xml.etree.ElementTree as AT
 from math import *
-import WFrameUtils
+import WFUtils
 
 from PySide import QtCore, QtGui
 
@@ -69,13 +69,17 @@ class WFEditAttributes():
         return
 
     def IsActive(self):
+        bool = False
         """Here you can define if the command must be active or not (greyed) if certain conditions
         are met or not. This function is optional."""
         if FreeCADGui.ActiveDocument:
-            return len(FreeCADGui.Selection.getSelection()) > 0
-        else:
-            return False
-FreeCADGui.addCommand('WFEditAttributes', WFEditAttributes())
+            bool = True
+            for i in FreeCADGui.Selection.getSelection():
+                if not hasattr(i,"Tag"):
+                    return False
+        return bool
+
+FreeCADGui.addCommand('WF_EditAttributes', WFEditAttributes())
 
 
 class WFSelectByAttributes():
@@ -94,23 +98,8 @@ class WFSelectByAttributes():
 
     def IsActive(self):
        return True
-FreeCADGui.addCommand('WFSelectByAttributes', WFSelectByAttributes())
+FreeCADGui.addCommand('WF_SelectByAttributes', WFSelectByAttributes())
 
-
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
-
-try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
-
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
 
 
 '''Strings used to determine Attributes'''
@@ -176,21 +165,24 @@ class Attributes:
 
 
 def check():
-    # if there's no WFrame Group
-    if not hasattr(FreeCAD.ActiveDocument, "WFrame"):
-        FreeCAD.ActiveDocument.addObject("App::DocumentObjectGroup","WFrame")
-        ###TODO : Hide group in treeView
-        createAttributesList()
-        FreeCAD.ActiveDocument.WFrame.addObject(FreeCAD.ActiveDocument.Attributes)
+    # check if there's WFrame Group
+    if hasattr(FreeCAD.ActiveDocument, "WFrame"):
+        wfobj = FreeCAD.ActiveDocument.WFrame
+
+    else:
+        #create group
+        wfobj= FreeCAD.ActiveDocument.addObject("App::DocumentObjectGroup","WFrame")
+
         ###TODO : Create Materials
         ###TODO : Create Layers
         ###WARNING : Layers in draft are called "Layer" and not by name !!!!
+        ### have to check with Layer.Label
         # example
         r = (1 / 255) * 80
         g = (1 / 255) * 255
         b = (1 / 255) * 255
         Draft.makeLayer("Principal",linecolor=(r,g,b))
-        FreeCAD.ActiveDocument.Principal.ViewObject.OverrideChildren=False
+
         r = (1 / 255) * 180
         g = (1 / 255) * 180
         b = (1 / 255) * 180
@@ -199,8 +191,12 @@ def check():
         g = (1 / 255) * 255
         b = (1 / 255) * 50
         Draft.makeLayer("Complémentaire", linecolor=(r, g, b))
-
-
+        FreeCAD.ActiveDocument.recompute()
+        #FreeCAD.ActiveDocument.Principal.ViewObject.OverrideChildren = False
+    #now check if there's attributes feature
+    if not hasattr(FreeCAD.ActiveDocument, "Attributes"):
+        createAttributesList()
+        FreeCAD.ActiveDocument.WFrame.addObject(FreeCAD.ActiveDocument.Attributes)
 
 
 
@@ -284,7 +280,7 @@ class Ui_AttrEdit:
         # now retreive properties of selected objects
         for obj in self.objList:
             # test if the object have WFrame attributes
-            if not 'WFName' in obj.PropertiesList:
+            if not hasattr(obj.PropertiesList,"WFName"):
                 # if not insert them
                 insertAttr(obj)
 

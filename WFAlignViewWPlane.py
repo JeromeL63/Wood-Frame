@@ -23,7 +23,7 @@
 
 
 import os
-import FreeCAD, FreeCADGui
+import FreeCADGui,WFUtils
 
 __dir__ = os.path.dirname(__file__)
 
@@ -42,18 +42,17 @@ class WFrameAlignViewWPlane():
                 'ToolTip': "Align camera view on the current workingplane"}
 
     def Activated(self):
-        c = FreeCADGui.ActiveDocument.ActiveView.getCameraNode()
-        r = FreeCAD.DraftWorkingPlane.getRotation().Rotation.Q
-        c.orientation.setValue(r)
+        WFUtils.alignView()
         return
 
     def IsActive(self):
-        """Here you can define if the command must be active or not (greyed) if certain conditions
-        are met or not. This function is optional."""
         if FreeCADGui.ActiveDocument:
             return True
         else:
             return False
 
 
-FreeCADGui.addCommand('WFrameAlignViewWPlane', WFrameAlignViewWPlane())
+
+
+
+FreeCADGui.addCommand('WF_AlignViewWPlane', WFrameAlignViewWPlane())

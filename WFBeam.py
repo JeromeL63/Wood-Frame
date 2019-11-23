@@ -29,7 +29,7 @@ from FreeCAD import Base, Vector, Rotation
 from math import *
 
 import DraftTrackers
-import WFrameAttributes, WFrameUtils, WFrameDialogs
+import WFAttributes, WFUtils, WFDialogs
 
 if FreeCAD.GuiUp:
     import FreeCADGui
@@ -101,10 +101,11 @@ class Ui_Definition():
         self.w = self.beam.width
 
         self.form = QtGui.QWidget()
+        self.form.setWindowTitle("Add beam")
         grid = QtGui.QGridLayout(self.form)
 
         ### COORDINATES CONTAINER ###
-        self.coords = WFrameDialogs.CoordinatesWidget()
+        self.coords = WFDialogs.CoordinatesWidget()
         grid.addWidget(self.coords, 0, 0, 1, 1)
 
         QtCore.QObject.connect(self.coords.oX, QtCore.SIGNAL("valueChanged(double)"), self.setoX)
@@ -114,7 +115,7 @@ class Ui_Definition():
         QtCore.QObject.connect(self.coords.eY, QtCore.SIGNAL("valueChanged(double)"), self.seteY)
 
         ### DIMENSION CONTAINER ###
-        self.dim = WFrameDialogs.DimensionsWidget()
+        self.dim = WFDialogs.DimensionsWidget()
         self.dim.width.setText(FreeCAD.Units.Quantity(self.w, FreeCAD.Units.Length).UserString)
         self.dim.height.setText(FreeCAD.Units.Quantity(self.h, FreeCAD.Units.Length).UserString)
         grid.addWidget(self.dim, 1, 0, 1, 1)
@@ -126,13 +127,13 @@ class Ui_Definition():
         self.dim.length.setVisible(False)
 
         ### DESCRIPTION CONTAINER ###
-        self.desc = WFrameDialogs.DescriptionWidget(orientations=self.beam.orientationTypes)
+        self.desc = WFDialogs.DescriptionWidget(orientations=self.beam.orientationTypes)
         grid.addWidget(self.desc, 2, 0, 1, 1)
         QtCore.QObject.connect(self.desc.cb_Orientation, QtCore.SIGNAL("currentIndexChanged(int)"), self.sectionChanged)
         QtCore.QObject.connect(self.desc.cb_Name, QtCore.SIGNAL("currentIndexChanged(int)"), self.redraw)
 
         ### INSERTION POINT CONTAINER ###
-        self.inspoint = WFrameDialogs.InsertionPointWidget()
+        self.inspoint = WFDialogs.InsertionPointWidget()
         grid.addWidget(self.inspoint, 4, 0, 1, 1)
 
         QtCore.QObject.connect(self.inspoint.rb_1, QtCore.SIGNAL("clicked()"), self.offset)
@@ -338,7 +339,7 @@ class Ui_Definition():
         elif self.inspoint.rb_9.isChecked():
             pos = 9
 
-        pt = WFrameUtils.offset(height=self.h, width=self.w, orientation=self.beam.orientation, position=pos)
+        pt = WFUtils.offset(height=self.h, width=self.w, orientation=self.beam.orientation, position=pos)
         self.beam.setOffset(off=pt)
         FreeCADGui.Selection.clearSelection()
 
@@ -362,8 +363,8 @@ class Beam():
 
     def __init__(self):
         print("##Beam##\r\n")
-        self.name = WFrameAttributes.getNames()[0]
-        self.type = WFrameAttributes.getTypes()[0]
+        self.name = WFAttributes.getNames()[0]
+        self.type = WFAttributes.getTypes()[0]
         self.width = 45
         self.height = 145
         self.length = 1000
@@ -430,7 +431,8 @@ class Beam():
         self.structure.Label = self.name
 
         # set specific Attributes for WFrame
-        WFrameAttributes.insertAttr(self.structure)
+
+        WFAttributes.insertAttr(self.structure)
         self.structure.WFName = self.name
         self.structure.Type = self.type
 
@@ -482,6 +484,6 @@ class Beam():
         FreeCAD.ActiveDocument.recompute()
 
     def setRotations(self):
-        self.structure=WFrameUtils.setRotations(self.structure,points=self.points,wplan=self.wplan)
+        self.structure=WFUtils.setRotations(self.structure, points=self.points, wplan=self.wplan)
         FreeCAD.ActiveDocument.recompute()
 

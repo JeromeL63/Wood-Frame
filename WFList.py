@@ -68,7 +68,7 @@ class WFrameList():
             return True
         else:
             return False
-FreeCADGui.addCommand('WFrameList',WFrameList())
+FreeCADGui.addCommand('WF_List',WFrameList())
 
 
 
@@ -117,6 +117,7 @@ def listingfilter(items):
                                     if obj.Tag == item :
                                         objlist.append(obj)
                                 except AttributeError:
+
                                     pass
                                 #Listing()
                                 #objectAnalyse(obj)
