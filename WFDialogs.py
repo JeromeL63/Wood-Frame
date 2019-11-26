@@ -175,6 +175,7 @@ class InsertionPointWidget(QtGui.QGroupBox):
 
 class ListSelectionWidget(QtGui.QWidget):
     def __init__(self):
+
         self.selection=[]
         QtGui.QWidget.__init__(self)
         grid = QtGui.QGridLayout(self)
@@ -184,6 +185,7 @@ class ListSelectionWidget(QtGui.QWidget):
         self.taglistwidget.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.taglistwidget.addItem("Selection")
         self.taglistwidget.addItems(WFUtils.getTagList())
+        self.taglistwidget.setCurrentRow(0)
         grid.addWidget(self.lbl1, 0, 0, 1, 1)
         grid.addWidget(self.taglistwidget, 1, 0, 1, 1)
 
@@ -191,8 +193,17 @@ class ListSelectionWidget(QtGui.QWidget):
         self.filtered= QtGui.QListWidget()
         grid.addWidget(self.lbl2,0,1,1,1)
         grid.addWidget(self.filtered,1,1,1,1)
-
         QtCore.QObject.connect(self.taglistwidget, QtCore.SIGNAL("itemSelectionChanged()"),self.makeFiltered)
+
+        # theese functions are used to listen Selection(Observer) !
+        FreeCADGui.Selection.addObserver(self)
+
+    def addSelection(self, doc, obj, sub, pnt):
+        self.makeFiltered()
+
+    def removeObserver(self):
+        FreeCADGui.Selection.removeObserver(self)
+
 
     def makeFiltered(self):
         items = []

@@ -104,13 +104,24 @@ class Ui_AddContainer():
         grid.addWidget(self.selectionList,1,0,1,2)
         self.list=[]
 
+
+
+    # end listener functions
+
     def accept(self):
+        self.selectionList.removeObserver()
         c = Container(objectsList=self.selectionList.selection,name=self.ledName.text())
         c.createVolume()
         FreeCADGui.Control.closeDialog()
 
     def reject(self):
+        self.selectionList.removeObserver()
         FreeCADGui.Control.closeDialog()
+
+
+
+
+
 
 class Ui_AddView():
     def __init__(self,container):
@@ -163,7 +174,6 @@ class Ui_AddView():
 
     def addSelection(self,doc,obj,sub,pnt):
         print(str(obj),str(sub))
-
         self.addview()
     #end listener functions
 
@@ -236,6 +246,9 @@ class Ui_AddView():
                 v.Visibility=bool
 
 
+
+
+
 class Ui_ContainerEdit:
     def __init__(self, container):
         loader = FreeCADGui.UiLoader()
@@ -301,8 +314,6 @@ class Ui_ContainerEdit:
         import WFDxfExport as export
         panel = export.Ui_Exporter(self.obj)
         FreeCADGui.Control.showDialog(panel)
-
-
 
 
     def showContent(self,bool=True):
