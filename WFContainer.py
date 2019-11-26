@@ -105,9 +105,6 @@ class Ui_AddContainer():
         self.list=[]
 
 
-
-    # end listener functions
-
     def accept(self):
         self.selectionList.removeObserver()
         c = Container(objectsList=self.selectionList.selection,name=self.ledName.text())
@@ -117,9 +114,6 @@ class Ui_AddContainer():
     def reject(self):
         self.selectionList.removeObserver()
         FreeCADGui.Control.closeDialog()
-
-
-
 
 
 
