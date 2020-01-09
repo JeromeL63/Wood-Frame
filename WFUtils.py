@@ -136,29 +136,7 @@ class WFCopy():
 
 
 
-class WFStretch():
-    """WFrameAttributes"""
 
-    def GetResources(self):
-        return {'Pixmap': __dir__ + '/Resources/icons/WFCopy.svg',
-                'Accel': "W,S",
-                'MenuText': "stretch Object",
-                'ToolTip': "stretch Object"}
-
-    def Activated(self):
-        obj=FreeCADGui.Selection.getSelection()[0]
-        for vert in obj.Shape.Vertexes:
-            print(vert)
-
-
-
-    def IsActive(self):
-        """Here you can define if the command must be active or not (greyed) if certain conditions
-        are met or not. This function is optional."""
-        if FreeCADGui.ActiveDocument:
-            return len(FreeCADGui.Selection.getSelection()) > 0
-        else:
-            return False
 
 
 def copySelection(base=FreeCAD.Vector(0, 0, 0), end=FreeCAD.Vector(0, 0, 0), objlist=None, number=1):
@@ -183,7 +161,7 @@ def copySelection(base=FreeCAD.Vector(0, 0, 0), end=FreeCAD.Vector(0, 0, 0), obj
 
 
 FreeCADGui.addCommand('WF_Copy', WFCopy())
-FreeCADGui.addCommand('WF_Stretch', WFStretch())
+
 
 
 
@@ -291,3 +269,13 @@ def setRotations(structure=None,points=[Base.Vector(0,0,0),Base.Vector(0,0,0)],w
     Draft.rotate(structure, angle, center=points[0], axis=wplan.getNormal(), copy=False)
 
     return structure
+
+def toNormalizedVector(vec,lg):
+    return FreeCAD.Vector(vec[0] / lg,vec[1] /lg,vec[2]/lg)
+
+def normalizedToVector(vec,lg):
+    return FreeCAD.Vector(vec[0] * lg, vec[1] * lg, vec[2] * lg)
+
+
+
+
