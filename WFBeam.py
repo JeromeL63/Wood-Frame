@@ -375,11 +375,15 @@ class Beam():
         self.points = [Base.Vector(0, 0, 0), Base.Vector(0, 0, 0)]
         self.angle = 0
         self.structure = None
+        self.profil=None
 
     def delete(self):
         if self.structure:
             self.structure.Document.removeObject(self.structure.Name)
             self.structure = None
+        if self.profil:
+            self.profil.Document.removeObject(self.profil.Name)
+            self.profil = None
 
     def create(self, structure=None, start=Base.Vector(0, 0, 0), end=Base.Vector(0, 0, 0), isShadow=False):
         '''create(self, structure=None, startPoint=Base.Vector(0, 0, 0), endPoint=Base.Vector(0, 0, 0), isShadow=False)
@@ -401,7 +405,26 @@ class Beam():
         if self.structure:
             self.structure = structure
         else:
-            self.structure = Arch.makeStructure(None, self.length, self.width, self.height)
+            if not self.profil:
+                profpoints=[]
+                profpoints.append(FreeCAD.Vector(-self.width /2,-self.height/2,0))
+                profpoints.append(FreeCAD.Vector(self.width/2, -self.height/2, 0))
+                profpoints.append(FreeCAD.Vector(self.width/2,self.height/2, 0))
+                profpoints.append(FreeCAD.Vector(-self.width/2,self.height/2, 0))
+                self.profil = Draft.makeWire(profpoints,closed=True)
+                self.profil.Label=str(self.width)+"x"+str(self.height)+"_0"
+
+            #self.structure = Arch.makeStructure(None, self.length, self.width, self.height)
+            self.structure = Arch.makeStructure(self.profil, self.length)
+            self.structure.MoveBase=True
+            #Nodes : nodes .... the dark face
+
+            if not self.orientation== 2:
+                self.structure.Nodes=[self.points[0],self.points[1]]
+            else :
+                ###TODO
+                pass
+
 
         self.setAttributes()
         self.setOrientation()
@@ -467,23 +490,32 @@ class Beam():
         # Rotate beam on workingplane
 
         self.initialPlacement = self.initialPlacement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0), self.rotPlan)
-        self.structure.Placement = self.initialPlacement
+        #self.structure.Placement = self.initialPlacement
+        self.profil.Placement=self.initialPlacement
 
         # beam defaultview is from face
-        self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),
-                                                                                     FreeCAD.Rotation(0, 0, -90))
+        #self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),
+        #                                                                             FreeCAD.Rotation(0, 0, -90))
+
+        self.profil.Placement=self.profil.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),
+                                                                                     FreeCAD.Rotation(0, 90, 0))
         # beam up view
         if self.orientation == 1:
-            self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),
-                                                                                         FreeCAD.Rotation(0, 0, 90))
+            #self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),
+            #                                                                             FreeCAD.Rotation(0, 0, 90))
+            self.profil.Placement = self.profil.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),
+                                                                                   FreeCAD.Rotation(90, 0, 0))
         # beam cut view
         elif self.orientation == 2:
-            self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),
-                                                                                         FreeCAD.Rotation(90, 0, 0))
+            #self.structure.Placement = self.structure.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),
+            #                                                                             FreeCAD.Rotation(90, 0, 0))
+            self.profil.Placement = self.profil.Placement * FreeCAD.Base.Placement(FreeCAD.Vector(0, 0, 0),
+                                                                                   FreeCAD.Rotation(0, -90, 0))
 
         FreeCAD.ActiveDocument.recompute()
 
     def setRotations(self):
-        self.structure=WFUtils.setRotations(self.structure, points=self.points, wplan=self.wplan)
+        #self.structure=WFUtils.setRotations(self.structure, points=self.points, wplan=self.wplan)
+        self.profil=WFUtils.setRotations(self.profil, points=self.points, wplan=self.wplan)
         FreeCAD.ActiveDocument.recompute()
 
