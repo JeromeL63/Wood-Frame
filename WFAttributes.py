@@ -106,7 +106,7 @@ FreeCADGui.addCommand('WF_SelectByAttributes', WFSelectByAttributes())
 txt_name = "WFName"
 txt_type = "Type"
 txt_wclass = "WoodClass"
-txt_group = "Group"
+txt_group = "WFGroup"
 txt_sgroup = "SubGroup"
 txt_prodnum = "ProdNumber"
 txt_invnum = "InvNumber"
@@ -137,7 +137,7 @@ class Attributes:
         obj.setEditorMode(txt_wclass, 2)
 
         obj.addProperty("App::PropertyStringList",txt_group,"WFrame")
-        obj.Group=["Charpente","Couverture","Ossature","Plancher RDC","Plancher R+1"]
+        obj.WFGroup=["Charpente","Couverture","Ossature","Plancher RDC","Plancher R+1"]
         obj.setEditorMode(txt_group, 2)
 
         obj.addProperty("App::PropertyStringList",txt_sgroup,"WFrame")
@@ -361,7 +361,7 @@ class Ui_AttrEdit:
                 elif i == txt_wclass and not self.form.cb_WoodClass.currentText() == multiNames:
                     obj.WoodClass = self.form.cb_WoodClass.currentText()
                 elif i == txt_group and not self.form.cb_Group.currentText() == multiNames:
-                    obj.Group = self.form.cb_Group.currentText()
+                    obj.WFGroup = self.form.cb_Group.currentText()
                 elif i == txt_sgroup and not self.form.cb_Sub_Group.currentText() == multiNames:
                     obj.SubGroup = self.form.cb_Sub_Group.currentText()
                 elif i == txt_mach and not self.form.cb_Machining.currentText() == multiNames:
@@ -403,7 +403,7 @@ class Ui_AttrEdit:
             obj = FreeCAD.ActiveDocument.getObject("Attributes")
             list = obj.getPropertyByName(txt_group)
             list.append(value)
-            obj.Group = list
+            obj.WFGroup = list
             self.form.cb_Group.clear()
             self.form.cb_Group.addItems(getGroups())
             ind = self.form.cb_Group.count() - 1
@@ -462,7 +462,7 @@ class Ui_AttrSelect:
                 elif n == txt_wclass:
                     self.lst.append(obj.WoodClass)
                 elif n == txt_group:
-                    self.lst.append(obj.Group)
+                    self.lst.append(obj.WFGroup)
                 elif n == txt_sgroup:
                     self.lst.append(obj.SubGroup)
                 elif n == txt_mach:
@@ -493,7 +493,7 @@ class Ui_AttrSelect:
                     if attr == txt_name and obj.WFName ==  val : add = True
                     elif attr == txt_wclass and obj.WoodClass == val : add = True
                     elif attr == txt_type and obj.Type ==  val : add = True
-                    elif attr == txt_group and obj.Group == val: add = True
+                    elif attr == txt_group and obj.WFGroup == val: add = True
                     elif attr == txt_sgroup and obj.SubGroup == val: add = True
                     elif attr == txt_mach and obj.MachiningType == val: add = True
                     #elif attr == txt_u1
