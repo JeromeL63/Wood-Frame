@@ -33,6 +33,7 @@ __url__ = "http://www.freecadweb.org"
 
 import FreeCAD
 import WFBeam,WFPanel,WFList,WFAlignViewWPlane,WFAttributes
+import WFStretch
 import WFContainer,WFDialogs,WFUtils,WFDxfExport
 
 
