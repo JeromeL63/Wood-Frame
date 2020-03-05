@@ -52,7 +52,7 @@ def alignView():
     c.orientation.setValue(r)
 
 def getTagList():
-    #function to retreive tags in document
+    #function to retrieve tags in document
     taglist = []
     for obj in FreeCAD.ActiveDocument.Objects :
         if hasattr(obj,"Tag"):
@@ -167,7 +167,7 @@ FreeCADGui.addCommand('WF_Copy', WFCopy())
 
 def offset(height,width,orientation=0,position=5):
     '''
-    This function return an offset point calculated with heigth width and orientation
+    This function return an offset point calculated with height width and orientation
     :param height: part's height
     :param width: part's width
     :param orientation: orientation between 0 to 2

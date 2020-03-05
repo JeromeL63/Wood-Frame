@@ -50,7 +50,7 @@ class WFrameList():
     def GetResources(self):
         return {'Pixmap'  :  __dir__ + '/Resources/icons/WFrame_Listing.svg',
                 'Accel' : "W,L",
-                'MenuText': "WFrameList",
+                'MenuText': "Create beams listing",
                 'ToolTip' : "Create wood beams listing"}
 
     def Activated(self):
@@ -105,7 +105,7 @@ def listingfilter(items):
             if item == tag :
                 for obj in objs:
                     #a = obj.Name
-                    #print("Objet : " + str(a))
+                    #print("Object : " + str(a))
                     #b = obj.Label
                     if hasattr(obj,"Proxy"):
                         #print(" - hasattr Proxy : ok")

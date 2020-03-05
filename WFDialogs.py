@@ -195,7 +195,7 @@ class ListSelectionWidget(QtGui.QWidget):
         grid.addWidget(self.filtered,1,1,1,1)
         QtCore.QObject.connect(self.taglistwidget, QtCore.SIGNAL("itemSelectionChanged()"),self.makeFiltered)
 
-        # theese functions are used to listen Selection(Observer) !
+        # these functions are used to listen Selection(Observer) !
         FreeCADGui.Selection.addObserver(self)
 
     def addSelection(self, doc, obj, sub, pnt):

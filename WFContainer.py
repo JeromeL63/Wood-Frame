@@ -156,7 +156,7 @@ class Ui_AddView():
         QtCore.QObject.connect(self.flipDirection, QtCore.SIGNAL("clicked()"), self.flip)
 
 
-    #theese functions are used to listen selection(Observer) !
+    #these functions are used to listen selection(Observer) !
         FreeCADGui.Selection.addObserver(self)
     def setPreselection(self,doc,obj,sub):
         # Preselection object
@@ -257,7 +257,7 @@ class Ui_ContainerEdit:
 
 
 
-        self.but_RedoBBox = QtGui.QPushButton("Redraw bouding Box")
+        self.but_RedoBBox = QtGui.QPushButton("Redraw bounding Box")
         self.but_AddView = QtGui.QPushButton("Add a new view")
         self.lst_EditView = QtGui.QListWidget()
         self.but_TodDxf = QtGui.QPushButton("Export container's views to DXF file")

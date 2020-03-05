@@ -62,7 +62,7 @@ class WF_Beam():
         return {'Pixmap': __dir__ + '/Resources/icons/WF_Beam.svg',
                 'Accel': "W,B",
                 'MenuText': "Add beam",
-                'ToolTip': "Create an advanced beam with better positionning method"}
+                'ToolTip': "Create an advanced beam with better positioning method"}
 
     def Activated(self):
         self.view = FreeCADGui.ActiveDocument.ActiveView
@@ -239,7 +239,7 @@ class Ui_Definition():
             if event.getPrintableCharacter() == "9": self.inspoint.rb_9.setChecked(True)
             self.offset()
 
-    # retreive point clicked with snap
+    # retrieve point clicked with snap
     def mouseClick(self, event_cb):
 
         event = event_cb.getEvent()
@@ -388,7 +388,7 @@ class Beam():
     def create(self, structure=None, start=Base.Vector(0, 0, 0), end=Base.Vector(0, 0, 0), isShadow=False):
         '''create(self, structure=None, startPoint=Base.Vector(0, 0, 0), endPoint=Base.Vector(0, 0, 0), isShadow=False)
         create the beam
-        structure : copy of an existant beam
+        structure : copy of an existent beam
         start : the origin point in global coords
         end : the end point in global coords
         isShadow: transparent mode

@@ -183,7 +183,7 @@ static char *ferme[] = {
         """This function is executed when FreeCAD starts"""
         '''
         disabling numpad shortcuts
-        to use for positionning and quick launch
+        to use for positioning and quick launch
         '''
 
 
