@@ -251,7 +251,7 @@ def filterByAttr(objList=None, filter=""):
 
 class Ui_AttrEdit:
     def __init__(self):
-        ##retreive selected objects
+        ##retrieve selected objects
         self.objList = FreeCADGui.Selection.getSelection()
         ### onSelectionChange could be fun
 
@@ -277,7 +277,7 @@ class Ui_AttrEdit:
         self.form.addMachining.clicked.connect(self.addMachining)
         # ui setup done
 
-        # now retreive properties of selected objects
+        # now retrieve properties of selected objects
         for obj in self.objList:
             # test if the object have WFrame attributes
             if not hasattr(obj.PropertiesList,"WFName"):

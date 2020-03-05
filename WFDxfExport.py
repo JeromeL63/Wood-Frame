@@ -204,11 +204,11 @@ def addView():
 class DxfExport:
     '''
     this tool is used to extract a model to dxf.
-    It retreive layers defined in Draft module and redo the same in dxf
+    It retrieve layers defined in Draft module and redo the same in dxf
     For more convenience the container tool can be used to export multi views
 
     Container : the container object used to export
-    currentview: Optionnal. If currentview is selected, only the view displayed will be exported using
+    currentview: Optional. If currentview is selected, only the view displayed will be exported using
     the container content
     '''
 
@@ -232,7 +232,7 @@ class DxfExport:
         self.activeDocument= FreeCAD.ActiveDocument
         ### dxf modelspace's
         self.msp = self.doc.modelspace()
-        ###TODO: try to load appropriate modules and not workbenchs
+        ###TODO: try to load appropriate modules and not workbenches
         FreeCADGui.activateWorkbench("TechDrawWorkbench")
         FreeCADGui.activateWorkbench("WFrame")
 
@@ -347,7 +347,7 @@ class DxfExport:
             addView()
             dvp = FreeCAD.ActiveDocument.View
             lst = dvp.getVisibleEdges()
-            # create a dictionnary of shapes by layers
+            # create a dictionary of shapes by layers
             self.shapesInLayers[lay.Label] = lst
             #print("content :",lst)
 
@@ -450,7 +450,7 @@ class DxfExport:
         return lst1
 
     def isOnEdge(self,edge1,edge2):
-        # function that return true if edge 1 is on egde 2
+        # function that return true if edge 1 is on edge 2
         out = False
         vec1 = Base.Vector(edge1.Vertexes[1].X - edge1.Vertexes[0].X , edge1.Vertexes[1].Y-edge1.Vertexes[0].Y , 0)
         vec2 = Base.Vector(edge2.Vertexes[1].X - edge2.Vertexes[0].X, edge2.Vertexes[1].Y - edge2.Vertexes[0].Y, 0)

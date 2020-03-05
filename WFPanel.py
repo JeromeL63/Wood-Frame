@@ -64,7 +64,7 @@ class WF_Panel():
         return {'Pixmap'  :  __dir__ + '/Resources/icons/WF_Panel.svg',
                 'Accel' : "W,P",
                 'MenuText': "Add Panel",
-                'ToolTip' : "Create an advanced panel with better positionning method"}
+                'ToolTip' : "Create an advanced panel with better positioning method"}
 
     def Activated(self):
         self.view = FreeCADGui.ActiveDocument.ActiveView
@@ -225,7 +225,7 @@ class Ui_Definition:
             if event.getPrintableCharacter() == "9": self.inspoint.rb_9.setChecked(True)
             self.offset()
 
-    #retreive point clicked with snap
+    #retrieve point clicked with snap
     def mouseClick(self,event_cb):
         event = event_cb.getEvent()
         if event.getButton() == 1:

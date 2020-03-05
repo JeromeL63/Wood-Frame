@@ -34,8 +34,8 @@ class WFStretch():
     def GetResources(self):
         return {'Pixmap': __dir__ + '/Resources/icons/WFStretch.svg',
                 'Accel': "W,S",
-                'MenuText': "stretch Object",
-                'ToolTip': "stretch Object"}
+                'MenuText': "Stretch Object",
+                'ToolTip': "Stretch Object"}
 
     def Activated(self):
         panel = Ui_Stretch(FreeCADGui.Selection.getSelection())
@@ -135,7 +135,7 @@ def lineIntersectFace(A,B,face):
         # if A belongs to P : the full Line L is included in the Plane
         if (normalPlan.x * A.x) + (normalPlan.y * A.y) + (normalPlan.z * A.z) + d == 0.0:
             return A
-        # if not the Plane and line are paralell without intersection
+        # if not the Plane and line are parallel without intersection
         else:
             return None
     else:
