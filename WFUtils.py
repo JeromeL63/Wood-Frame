@@ -38,7 +38,8 @@ from math import *
 
 
 if FreeCAD.GuiUp:
-    import FreeCADGui,DraftTrackers,DraftVecUtils
+    import FreeCADGui,DraftVecUtils
+    ##import Draft.draftguitools.gui_trackers as Trackers
 
 
 __dir__ = os.path.dirname(__file__)
@@ -102,7 +103,8 @@ class WFCopy():
                 'ToolTip': "Copy Object"}
 
     def Activated(self):
-        self.tracker = DraftTrackers.lineTracker()
+        #self.tracker = DraftTrackers.lineTracker()
+        self.tracker =Draft.draftguitools.gui_trackers.lineTracker ()
         self.tracker.on()
         self.objList=FreeCADGui.Selection.getSelection()
         FreeCADGui.Snapper.getPoint(callback=self.getBasePoint,title="Base Point")

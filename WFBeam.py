@@ -26,9 +26,11 @@
 
 import FreeCAD, Arch, Draft, ArchComponent, DraftVecUtils, ArchCommands, ArchStructure, math, FreeCADGui, WorkingPlane
 from FreeCAD import Base, Vector, Rotation
+
 from math import *
 
-import DraftTrackers
+###import DraftTrackers
+##import Draft
 import WFAttributes, WFUtils, WFDialogs
 
 if FreeCAD.GuiUp:

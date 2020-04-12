@@ -247,8 +247,7 @@ static char *ferme[] = {
                         "Draft_ShapeString","Draft_Facebinder","Draft_BezierTools","Draft_Label"]
         self.draftmodtools = ["Draft_Move","Draft_Rotate","Draft_Offset",
                         "Draft_Trimex", "Draft_Join", "Draft_Split", "Draft_Upgrade", "Draft_Downgrade", "Draft_Scale",
-                        "Draft_Edit","Draft_WireToBSpline","Draft_AddPoint",
-                        "Draft_DelPoint","Draft_Shape2DView","Draft_Draft2Sketch","Draft_Array",
+                        "Draft_Edit","Draft_WireToBSpline","Draft_Shape2DView","Draft_Draft2Sketch","Draft_Array",
                         "Draft_PathArray", "Draft_PointArray","Draft_Clone",
                         "Draft_Drawing","Draft_Mirror","Draft_Stretch"]
         self.draftextratools = ["Draft_WireToBSpline","Draft_AddPoint","Draft_DelPoint","Draft_ShapeString",
@@ -259,7 +258,7 @@ static char *ferme[] = {
                             "Draft_FinishLine","Draft_CloseLine"]
         self.utils = ["Draft_Heal","Draft_FlipDimension",
                       "Draft_ToggleConstructionMode","Draft_ToggleContinueMode","Draft_Edit",
-                      "Draft_Slope","Draft_SetWorkingPlaneProxy","Draft_AddConstruction"]
+                      "Draft_Slope","Draft_AddConstruction"]
         self.snapList = ['Draft_Snap_Lock','Draft_Snap_Midpoint','Draft_Snap_Perpendicular',
                          'Draft_Snap_Grid','Draft_Snap_Intersection','Draft_Snap_Parallel',
                          'Draft_Snap_Endpoint','Draft_Snap_Angle','Draft_Snap_Center',

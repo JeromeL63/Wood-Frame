@@ -26,7 +26,8 @@ import FreeCAD, Arch, Draft,ArchComponent, DraftVecUtils,ArchCommands, ArchStruc
 from FreeCAD import Base, Vector,Rotation
 from math import *
 
-import DraftTrackers
+#import DraftTrackers
+#import Draft.draftguitools.gui_trackers
 import WFAttributes,WFUtils,WFDialogs
 
 
